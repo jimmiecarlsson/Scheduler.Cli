@@ -1,13 +1,16 @@
 ﻿using Scheduler.Cli.Application;
 
-
-
-
 Console.WriteLine("Scheduler started...");
 
-// Här kallar vi en placeholder i Application
+// Calling Application
 var scheduler = new SchedulerService();
 scheduler.Run();
+
+//new TimeOfDayRange(new TimeOnly(8, 0), new TimeOnly(14, 0));
+
+Console.ReadLine();
+
+
 
 Console.WriteLine("Scheduler finished.");
 
