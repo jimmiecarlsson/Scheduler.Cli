@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Scheduler.Console.Domain.Content
+namespace Scheduler.Cli.Domain.Content
 {
     public class Reportage
     {
+
     }
 }
