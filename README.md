@@ -6,12 +6,12 @@ about modularity. We'll see how it works.
 
 # Scheduler
 
-A simple scheduling application built as a **Console App** to start with.  
+A simple scheduling application cli built as a **Console App** to start with.  
 The structure is modular so the same core logic can later be reused in a Web App.
 
 ## Project structure
 ```
-Scheduler.Console/
+Scheduler.Cli/
   Program.cs
   Domain/        // business rules and models
   Application/   // use cases (e.g. BuildWeekSchedule)
@@ -19,7 +19,7 @@ Scheduler.Console/
 ```
 
 ## Design principles
-- **Console** only handles input/output.  
+- **Cli** only handles input/output.  
 - **Domain** contains all scheduling rules (no overlaps, 24h coverage, studio assignment).  
 - **Application** orchestrates use cases (build week, fill gaps with music).  
 - **Infrastructure** provides technical helpers (e.g. in-memory music list).  
@@ -28,13 +28,13 @@ Scheduler.Console/
 ```
 Start with:
 
-[Console UI] → calls → [Application Use Case] → uses → [Domain Rules]
+[Cli (ConsoleApp) UI] → calls → [Application Use Case] → uses → [Domain Rules]
                                             ↘
                                              → [Infrastructure Adapters]
 
 The goal:
 
-[Console UI]     [Web UI (MVC/Blazor/API)]
+[Cli UI]     [Web UI]
        \         /
         \       /
          v     v
@@ -53,5 +53,5 @@ The goal:
 ```
 
 ## Next step
-When moving to a Web App, the Domain, Application, and Infrastructure folders can be lifted into separate class library projects.  
-The logic stays the same — only the presentation layer changes (Console → Web).
+When moving to a Web App, the goal is that the Domain, Application, and Infrastructure folders can be lifted into separate class library projects.  
+The logic stays the same — only the presentation layer changes (Console → Web). Fingers crossed :P
