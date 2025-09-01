@@ -1,4 +1,5 @@
-﻿using System;
+﻿namespace Scheduler.Cli.Domain.ValueObjects;
+using System;
 public class TimeOfDayRange
 {
     public TimeOnly Start { get; }
