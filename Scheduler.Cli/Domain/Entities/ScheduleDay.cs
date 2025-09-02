@@ -7,7 +7,7 @@ using Scheduler.Cli.Domain.ValueObjects;
     {
         public DateOnly Date {  get; }
 
-        private readonly List<ScheduleBlock> Blocks = new List<ScheduleBlock>();
+        public readonly List<ScheduleBlock> Blocks = new List<ScheduleBlock>();
 
         public ScheduleDay(DateOnly date)
         {
