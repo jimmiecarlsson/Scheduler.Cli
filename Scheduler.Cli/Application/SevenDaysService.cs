@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 
 
-public class CollectWeekSchedule
+public class SevenDaysService
 {
 
-    public static List<ScheduleDay> CollectWeek(DateOnly startDate)
+    public static List<ScheduleDay> GetSevenDays(DateOnly startDate)
     { 
         var days = new List<ScheduleDay>();
 

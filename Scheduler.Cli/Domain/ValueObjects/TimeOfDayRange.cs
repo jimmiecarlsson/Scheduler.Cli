@@ -16,10 +16,7 @@ public class TimeOfDayRange
             Start = start;
             End = end;
 
-            Console.WriteLine($"Start: {Start} End: {End}");
         }
-
-
     }
 
     public TimeSpan Duration => End.ToTimeSpan() - Start.ToTimeSpan();
