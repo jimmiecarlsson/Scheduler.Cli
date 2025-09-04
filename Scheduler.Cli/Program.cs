@@ -21,6 +21,11 @@ PrintWeek(week);
 Console.WriteLine("Scheduler finished.");
 Console.ReadLine();
 
+/// <summary>
+/// Methods below are just for demo and testing purposes
+/// </summary>
+
+
 // Help method to seed test data
 static void SeedTestData(List<ScheduleDay> days)
 {
@@ -47,6 +52,7 @@ static void SeedTestData(List<ScheduleDay> days)
 }
 
 // Print a full week schedule with gaps filled with "Musik"
+
 static void PrintWeek(List<ScheduleDay> days)
 {
     foreach (var d in days)
@@ -64,6 +70,8 @@ static void PrintDay(ScheduleDay day)
     var blocks = day.Blocks
         .OrderBy(b => b.Range.Start)
         .ToList();
+
+    // This will probably be the logic in the future
 
     var cursor = new TimeOnly(0, 0);           // 00:00
     var endOfDay = new TimeOnly(23, 59, 59);   // almost 24:00
