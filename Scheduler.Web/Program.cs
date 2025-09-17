@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
 
 var app = builder.Build();
@@ -16,10 +17,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
 
 // Add endpoints here
 
 app.MapGet("/health", () => Results.Ok("Scheduler API is running."));
 
+// Start the application
 app.Run();
 
