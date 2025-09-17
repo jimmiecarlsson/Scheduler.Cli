@@ -1,0 +1,13 @@
+﻿using Scheduler.Cli.Domain.ValueObjects;
+
+namespace Scheduler.Web.Dtos
+{
+    public class ScheduleBlockDto
+    {
+        public string Date { get; set; } = string.Empty;
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Studio { get; set; } = string.Empty;
+    }
+}
