@@ -1,7 +1,10 @@
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
+
 
 var app = builder.Build();
 
@@ -9,12 +12,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
 
 // Add endpoints here
 
+app.MapGet("/health", () => Results.Ok("Scheduler API is running."));
 
 app.Run();
 
