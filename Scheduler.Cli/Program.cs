@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Scheduler.Cli.Application;
+using Scheduler.Application;
 using Scheduler.Cli.Domain.Entities;
 using Scheduler.Cli.Domain.ValueObjects;
 

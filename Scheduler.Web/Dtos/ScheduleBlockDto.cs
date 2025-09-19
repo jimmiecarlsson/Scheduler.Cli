@@ -1,4 +1,4 @@
-﻿using Scheduler.Cli.Domain.ValueObjects;
+﻿using Scheduler.Domain.ValueObjects;
 
 namespace Scheduler.Web.Dtos
 {

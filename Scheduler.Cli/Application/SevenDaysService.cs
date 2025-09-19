@@ -1,4 +1,4 @@
-﻿namespace Scheduler.Cli.Application;
+﻿namespace Scheduler.Application;
 
 using Scheduler.Cli.Domain.Entities;
 using System;

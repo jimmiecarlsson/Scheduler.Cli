@@ -1,10 +1,13 @@
 using Scalar.AspNetCore;
+using Scheduler.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<SevenDaysService>();
 
 
 var app = builder.Build();
@@ -22,6 +25,7 @@ app.MapControllers();
 // Add endpoints here
 
 app.MapGet("/health", () => Results.Ok("Scheduler API is running."));
+
 
 // Start the application
 app.Run();

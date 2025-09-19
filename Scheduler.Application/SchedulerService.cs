@@ -1,9 +1,10 @@
-﻿using Scheduler.Cli.Domain.Entities;
-using Scheduler.Cli.Domain.ValueObjects;
+﻿namespace Scheduler.Application; 
+using Scheduler.Domain.Entities;
+using Scheduler.Domain.ValueObjects;
 using System;
 using System.Linq;
 
-namespace Scheduler.Application;
+
 
     public class SchedulerService
     {
