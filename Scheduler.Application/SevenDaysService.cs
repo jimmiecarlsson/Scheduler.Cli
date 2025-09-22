@@ -23,6 +23,17 @@ public class SevenDaysService
         return _days;
     }
 
+    public static List<ScheduleDay> GetAllDays()
+    {
+        if (_days == null)
+        {
+            _days = SeedDays(DateOnly.FromDateTime(DateTime.Today));
+        }
+
+        return _days;
+    }
+
+
     // 3️⃣ Hjälpmetod för seed-data
     private static List<ScheduleDay> SeedDays(DateOnly startDate)
     {
