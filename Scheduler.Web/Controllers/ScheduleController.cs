@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Scheduler.Application;
 using Scheduler.Web.Dtos;
+using Scheduler.Domain.ValueObjects;
 
 namespace Scheduler.Web.Controllers
 {
@@ -87,5 +88,48 @@ namespace Scheduler.Web.Controllers
 
             return Ok(result);
         }
+
+        // 🔹 Metod – endpoint för POST /api/schedule/block
+        [HttpPost("block")]
+        public IActionResult CreateBlock([FromBody] ScheduleBlockDto blockDto)
+        {
+            try
+            {
+                // 1️⃣ Konvertera DTO-värden till domänens typer
+                var date = DateOnly.Parse(blockDto.Date);
+                var start = TimeOnly.Parse(blockDto.StartTime);
+                var end = TimeOnly.Parse(blockDto.EndTime);
+                var title = blockDto.Title;
+                var studio = Enum.Parse<Studio>(blockDto.Studio);
+
+                // 2️⃣ Skapa blocket via applikationslagret
+                var block = SevenDaysService.AddBlock(date, start, end, title, studio);
+
+                // 3️⃣ Mappa tillbaka till DTO för svaret
+                var result = new ScheduleBlockDto
+                {
+                    Id = block.Id,
+                    Date = date.ToString("yyyy-MM-dd"),
+                    StartTime = start.ToString("HH:mm"),
+                    EndTime = end.ToString("HH:mm"),
+                    Title = title,
+                    Studio = studio.ToString()
+                };
+
+                // 4️⃣ Returnera 201 Created med blocket
+                return CreatedAtAction(nameof(GetScheduleById), new { id = block.Id }, result);
+            }
+            catch (ArgumentException ex)
+            {
+                // T.ex. tidskrock eller ogiltig studio
+                return Conflict(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Något annat gick snett
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
     }
 }
