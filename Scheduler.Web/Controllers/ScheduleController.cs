@@ -58,5 +58,32 @@ namespace Scheduler.Web.Controllers
 
             return Ok(result);
         }
+
+        // 🔹 Metod – endpoint för GET /api/schedule/{id}
+        [HttpGet("{id}")]
+        public IActionResult GetScheduleById(int id)
+        {
+
+         var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
+
+            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+
+            if (block == null)
+            {
+                return NotFound();
+            }
+
+            var result = new ScheduleBlockDto
+            {
+                Id = block.Id,
+                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
+                StartTime = block.Range.Start.ToString("HH:mm"),
+                EndTime = block.Range.End.ToString("HH:mm"),
+                Title = block.Title,
+                Studio = block.Studio.ToString()
+            };
+
+            return Ok(result);
+        }
     }
 }

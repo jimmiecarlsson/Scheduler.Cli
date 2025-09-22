@@ -11,7 +11,7 @@ using Scheduler.Domain.ValueObjects;
 
         public ScheduleDay(DateOnly date)
         {
-            Date = date;                    
+            Date = date;
         }
 
         public void AddBlock(ScheduleBlock newblock) {

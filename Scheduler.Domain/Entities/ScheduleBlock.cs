@@ -10,16 +10,19 @@ namespace Scheduler.Domain.Entities
 
         public Studio Studio { get; }
 
-        public ScheduleBlock(TimeOfDayRange range, string title, Studio studio)
+        public int Id { get; set; }
+
+        public ScheduleBlock(TimeOfDayRange range, string title, Studio studio, int id)
         {
             if(range == null) throw new ArgumentNullException(nameof(range));
             if(string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Title cannot be empty.", nameof(title));
             if (studio == Studio.Unknown) throw new ArgumentException("Studio cannot be Unknown", nameof(studio));
+            if (id <= 0) throw new ArgumentException("Id cannot be <= 0", nameof(id));
 
+            Id = id;
             Range = range;
             Title = title;
             Studio = studio;
-            
         }
 
     }
