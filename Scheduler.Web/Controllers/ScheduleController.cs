@@ -27,6 +27,7 @@ namespace Scheduler.Web.Controllers
 
             var result = today.Blocks.Select(block => new ScheduleBlockDto
             {
+                Id = block.Id,
                 Date = today.Date.ToString("yyyy-MM-dd"),
                 StartTime = block.Range.Start.ToString("HH:mm"),
                 EndTime = block.Range.End.ToString("HH:mm"),
@@ -48,6 +49,7 @@ namespace Scheduler.Web.Controllers
                 Date = day.Date.ToString("yyyy-MM-dd"),
                 Blocks = day.Blocks.Select(block => new ScheduleBlockDto
                 {
+                    Id = block.Id,
                     Date = day.Date.ToString("yyyy-MM-dd"),
                     StartTime = block.Range.Start.ToString("HH:mm"),
                     EndTime = block.Range.End.ToString("HH:mm"),
