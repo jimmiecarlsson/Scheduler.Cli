@@ -3,7 +3,7 @@ using Scheduler.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Services
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
@@ -12,7 +12,7 @@ builder.Services.AddScoped<SevenDaysService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Dev
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -22,11 +22,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 
-// Add endpoints here
+// Add endpoints in /Controllers/
 
-app.MapGet("/health", () => Results.Ok("Scheduler API is running."));
-
-
-// Start the application
 app.Run();
 

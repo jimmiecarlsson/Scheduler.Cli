@@ -36,7 +36,9 @@ namespace Scheduler.Web.Controllers
                     StartTime = block.Range.Start.ToString("HH:mm"),
                     EndTime = block.Range.End.ToString("HH:mm"),
                     Title = block.Title,
-                    Studio = block.Studio.ToString()
+                    Studio = block.Studio.ToString(),
+                    Presenters = block.Presenters,
+                    Guests = block.Guests
                 }).ToList()
             });
 
@@ -58,7 +60,9 @@ namespace Scheduler.Web.Controllers
                 StartTime = block.Range.Start.ToString("HH:mm"),
                 EndTime = block.Range.End.ToString("HH:mm"),
                 Title = block.Title,
-                Studio = block.Studio.ToString()
+                Studio = block.Studio.ToString(),
+                Presenters = block.Presenters,
+                Guests = block.Guests
             }).ToList();
 
             return Ok(result);
@@ -81,7 +85,9 @@ namespace Scheduler.Web.Controllers
                     StartTime = block.Range.Start.ToString("HH:mm"),
                     EndTime = block.Range.End.ToString("HH:mm"),
                     Title = block.Title,
-                    Studio = block.Studio.ToString()
+                    Studio = block.Studio.ToString(),
+                    Presenters = block.Presenters,
+                    Guests = block.Guests
                 }).ToList()
             });
 
@@ -109,7 +115,9 @@ namespace Scheduler.Web.Controllers
                 StartTime = block.Range.Start.ToString("HH:mm"),
                 EndTime = block.Range.End.ToString("HH:mm"),
                 Title = block.Title,
-                Studio = block.Studio.ToString()
+                Studio = block.Studio.ToString(),
+                Presenters = block.Presenters,
+                Guests = block.Guests
             };
 
             return Ok(result);
@@ -139,7 +147,9 @@ namespace Scheduler.Web.Controllers
                     StartTime = start.ToString("HH:mm"),
                     EndTime = end.ToString("HH:mm"),
                     Title = title,
-                    Studio = studio.ToString()
+                    Studio = studio.ToString(),
+                    Presenters = block.Presenters,
+                    Guests = block.Guests
                 };
 
                 // Returnera 201 Created med blocket
@@ -235,6 +245,76 @@ namespace Scheduler.Web.Controllers
                 EndTime = post.Range.End.ToString("HH:mm"),
                 Title = post.Title,
                 Studio = post.Studio.ToString()
+            };
+
+            return Ok(result);
+        }
+
+        // Endpoint för POST /api/schedule/block/{id}/presenter
+        [HttpPost("block/{id}/presenter")]
+        public IActionResult AddPresenter(int id, [FromBody] AddPresenterDto presenterDto)
+        {
+            var days = SevenDaysService.GetAllDays();
+            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+
+            if (block == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(presenterDto.Name))
+            {
+                return BadRequest(new { error = "Presenter name cannot be empty" });
+            }
+
+            block.Presenters.Add(presenterDto.Name);
+
+            // Mappa tillbaka till DTO
+            var result = new ScheduleBlockDto
+            {
+                Id = block.Id,
+                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
+                StartTime = block.Range.Start.ToString("HH:mm"),
+                EndTime = block.Range.End.ToString("HH:mm"),
+                Title = block.Title,
+                Studio = block.Studio.ToString(),
+                Presenters = block.Presenters,
+                Guests = block.Guests
+            };
+
+            return Ok(result);
+        }
+
+        // Endpoint för POST /api/schedule/block/{id}/guests
+        [HttpPost("block/{id}/guests")]
+        public IActionResult AddGuests(int id, [FromBody] AddGuestsDto guestsDto)
+        {
+            var days = SevenDaysService.GetAllDays();
+            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+
+            if (block == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrWhiteSpace(guestsDto.Guests))
+            {
+                return BadRequest(new { error = "Guests cannot be empty" });
+            }
+
+            block.Guests.Add(guestsDto.Guests);
+
+            // Mappa tillbaka till DTO
+            var result = new ScheduleBlockDto
+            {
+                Id = block.Id,
+                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
+                StartTime = block.Range.Start.ToString("HH:mm"),
+                EndTime = block.Range.End.ToString("HH:mm"),
+                Title = block.Title,
+                Studio = block.Studio.ToString(),
+                Presenters = block.Presenters,
+                Guests = block.Guests
             };
 
             return Ok(result);

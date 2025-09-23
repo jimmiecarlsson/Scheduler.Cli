@@ -12,6 +12,9 @@ namespace Scheduler.Domain.Entities
 
         public int Id { get; set; }
 
+        public List<string> Presenters { get; set; } = new();
+        public List<string> Guests { get; set; } = new();
+
         public ScheduleBlock(TimeOfDayRange range, string title, Studio studio, int id)
         {
             if(range == null) throw new ArgumentNullException(nameof(range));
