@@ -18,27 +18,8 @@ namespace Scheduler.Web.Controllers
             _SevenDaysService = sevenDaysService;
         }
 
-        // 🔹 Metod – endpoint för GET /api/schedule/today
-        [HttpGet("today")]
-        public IActionResult GetToday()
-        {
-            var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
 
-            var today = days[0];
-
-            var result = today.Blocks.Select(block => new ScheduleBlockDto
-            {
-                Id = block.Id,
-                Date = today.Date.ToString("yyyy-MM-dd"),
-                StartTime = block.Range.Start.ToString("HH:mm"),
-                EndTime = block.Range.End.ToString("HH:mm"),
-                Title = block.Title,
-                Studio = block.Studio.ToString()
-            }).ToList();
-
-            return Ok(result);
-        }
-
+        // Endpoint för GET /api/schedule/all
         [HttpGet("all")]
         public IActionResult GetAll()
         {
@@ -62,8 +43,29 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
+        // Endpoint för GET /api/schedule/today
+        [HttpGet("today")]
+        public IActionResult GetToday()
+        {
+            var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
 
-        // 🔹 Metod – endpoint för GET /api/schedule/week
+            var today = days[0];
+
+            var result = today.Blocks.Select(block => new ScheduleBlockDto
+            {
+                Id = block.Id,
+                Date = today.Date.ToString("yyyy-MM-dd"),
+                StartTime = block.Range.Start.ToString("HH:mm"),
+                EndTime = block.Range.End.ToString("HH:mm"),
+                Title = block.Title,
+                Studio = block.Studio.ToString()
+            }).ToList();
+
+            return Ok(result);
+        }
+
+
+        // Endpoint för GET /api/schedule/week
         [HttpGet("week")]
         public IActionResult GetWeek()
         {
@@ -86,7 +88,7 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
-        // 🔹 Metod – endpoint för GET /api/schedule/{id}
+        // Endpoint för GET /api/schedule/{id}
         [HttpGet("{id}")]
         public IActionResult GetScheduleById(int id)
         {
@@ -113,23 +115,23 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
-        // 🔹 Metod – endpoint för POST /api/schedule/block
+        // Endpoint för POST /api/schedule/block
         [HttpPost("block")]
         public IActionResult CreateBlock([FromBody] ScheduleBlockDto blockDto)
         {
             try
             {
-                // 1️⃣ Konvertera DTO-värden till domänens typer
+                // Konvertera DTO-värden till domänens typer
                 var date = DateOnly.Parse(blockDto.Date);
                 var start = TimeOnly.Parse(blockDto.StartTime);
                 var end = TimeOnly.Parse(blockDto.EndTime);
                 var title = blockDto.Title;
                 var studio = Enum.Parse<Studio>(blockDto.Studio);
 
-                // 2️⃣ Skapa blocket via applikationslagret
+                // Skapa blocket via applikationslagret
                 var block = SevenDaysService.AddBlock(date, start, end, title, studio);
 
-                // 3️⃣ Mappa tillbaka till DTO för svaret
+                // Mappa tillbaka till DTO för svaret
                 var result = new ScheduleBlockDto
                 {
                     Id = block.Id,
@@ -140,7 +142,7 @@ namespace Scheduler.Web.Controllers
                     Studio = studio.ToString()
                 };
 
-                // 4️⃣ Returnera 201 Created med blocket
+                // Returnera 201 Created med blocket
                 return CreatedAtAction(nameof(GetScheduleById), new { id = block.Id }, result);
             }
             catch (ArgumentException ex)
@@ -155,30 +157,88 @@ namespace Scheduler.Web.Controllers
             }
         }
 
-        // 🔹 Metod – endpoint för DELETE /api/schedule/block/{id}
+        // Endpoint för DELETE /api/schedule/block/{id}
         [HttpDelete("block/{id}")]
         public IActionResult DeleteBlock(int id)
         {
-            var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
+            var posts = SevenDaysService.GetAllDays();
 
-            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+            var block = posts.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
 
             if (block == null)
             {
                 return NotFound();
             }
+            var day = posts.FirstOrDefault(d => d.Blocks.Contains(block));
+            if (day != null)
+            {
+                day.Blocks.Remove(block);
+            }
 
+            return NoContent();
+        }
+
+        // Endpoint för PUT /api/schedule/block/{id}
+        [HttpPut("block/{id}")]
+        public IActionResult UpdateBlock(int id, [FromBody] ScheduleBlockDto blockDto)
+        {
+            var days = SevenDaysService.GetAllDays();
+            var post = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            var day = days.FirstOrDefault(d => d.Blocks.Contains(post));
+            if (day == null)
+            {
+                return NotFound();
+            }
+
+            // Skapa nytt intervall – här fångas fel om sluttiden <= starttiden
+            var newRange = new TimeOfDayRange(
+                TimeOnly.Parse(blockDto.StartTime),
+                TimeOnly.Parse(blockDto.EndTime)
+            );
+
+            // Kontrollera krockar mot andra block samma dag
+            foreach (var existing in day.Blocks)
+            {
+                if (existing.Id != post.Id) // ignorera blocket självt
+                {
+                    if (newRange.Start < existing.Range.End && existing.Range.Start < newRange.End)
+                    {
+                        return Conflict(new { error = $"Block overlaps with existing block {existing.Range.Start} - {existing.Range.End}." });
+                    }
+                }
+            }
+
+            // Validera Studio
+            var studio = Enum.Parse<Studio>(blockDto.Studio);
+            if (studio == Studio.Unknown)
+            {
+                return BadRequest(new { error = "Studio cannot be Unknown" });
+            }
+
+            // Uppdatera blocket
+            post.Title = blockDto.Title;
+            post.Range = newRange;
+            post.Studio = studio;
+
+            // Mappa till DTO för svaret
             var result = new ScheduleBlockDto
             {
-                Id = block.Id,
-                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
-                StartTime = block.Range.Start.ToString("HH:mm"),
-                EndTime = block.Range.End.ToString("HH:mm"),
-                Title = block.Title,
-                Studio = block.Studio.ToString()
+                Id = post.Id,
+                Date = day.Date.ToString("yyyy-MM-dd"),
+                StartTime = post.Range.Start.ToString("HH:mm"),
+                EndTime = post.Range.End.ToString("HH:mm"),
+                Title = post.Title,
+                Studio = post.Studio.ToString()
             };
 
             return Ok(result);
         }
+
     }
 }

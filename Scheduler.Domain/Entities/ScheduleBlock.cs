@@ -5,10 +5,10 @@ namespace Scheduler.Domain.Entities
 {
     public class ScheduleBlock
     {
-        public TimeOfDayRange Range { get; }
-        public string Title { get; }
+        public TimeOfDayRange Range { get; set; }
+        public string Title { get; set; }
 
-        public Studio Studio { get; }
+        public Studio Studio { get; set; }
 
         public int Id { get; set; }
 
