@@ -1,5 +1,4 @@
-﻿using System;
-using Scheduler.Domain.ValueObjects;
+﻿using Scheduler.Domain.ValueObjects;
 
 namespace Scheduler.Domain.Entities
 {
@@ -12,8 +11,8 @@ namespace Scheduler.Domain.Entities
 
         public int Id { get; set; }
 
-        public List<string> Presenters { get; set; } = new();
-        public List<string> Guests { get; set; } = new();
+        public List<Presenter> Presenters { get; set; } = new();
+        public List<Guest> Guests { get; set; } = new();
 
         public ScheduleBlock(TimeOfDayRange range, string title, Studio studio, int id)
         {

@@ -2,6 +2,7 @@
 using Scheduler.Application;
 using Scheduler.Web.Dtos;
 using Scheduler.Domain.ValueObjects;
+using Scheduler.Domain.Entities;
 
 namespace Scheduler.Web.Controllers
 {
@@ -18,6 +19,10 @@ namespace Scheduler.Web.Controllers
             _SevenDaysService = sevenDaysService;
         }
 
+        // Räknare för att ge unika IDs till presenters och guests
+        private static int _nextPresenterId = 1;
+        private static int _nextGuestId = 1;
+
 
         // Endpoint för GET /api/schedule/all
         [HttpGet("all")]
@@ -25,11 +30,11 @@ namespace Scheduler.Web.Controllers
         {
             var days = SevenDaysService.GetAllDays();
 
-            // mappar dagarna och deras block till DTO:er (precis som i /week)
-            var result = days.Select(day => new
+            // Mappa varje dag till ScheduleDayDto
+            var result = days.Select(day => new ScheduleDayDto
             {
-                date = day.Date.ToString("yyyy-MM-dd"),
-                blocks = day.Blocks.Select(block => new ScheduleBlockDto
+                Date = day.Date.ToString("yyyy-MM-dd"),
+                Blocks = day.Blocks.Select(block => new ScheduleBlockDto
                 {
                     Id = block.Id,
                     Date = day.Date.ToString("yyyy-MM-dd"),
@@ -40,10 +45,11 @@ namespace Scheduler.Web.Controllers
                     Presenters = block.Presenters,
                     Guests = block.Guests
                 }).ToList()
-            });
+            }).ToList();
 
             return Ok(result);
         }
+
 
         // Endpoint för GET /api/schedule/today
         [HttpGet("today")]
@@ -266,8 +272,13 @@ namespace Scheduler.Web.Controllers
             {
                 return BadRequest(new { error = "Presenter name cannot be empty" });
             }
+            var presenter = new Presenter
+            {
+                Id = _nextPresenterId++,
+                Name = presenterDto.Name
+            };
 
-            block.Presenters.Add(presenterDto.Name);
+            block.Presenters.Add(presenter);
 
             // Mappa tillbaka till DTO
             var result = new ScheduleBlockDto
@@ -302,7 +313,13 @@ namespace Scheduler.Web.Controllers
                 return BadRequest(new { error = "Guests cannot be empty" });
             }
 
-            block.Guests.Add(guestsDto.Guests);
+            var guest = new Guest
+            {
+                Id = _nextGuestId++,
+                Name = guestsDto.Guests
+            };
+
+            block.Guests.Add(guest);
 
             // Mappa tillbaka till DTO
             var result = new ScheduleBlockDto
@@ -320,5 +337,48 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
+        [HttpDelete("block/{id}/presenter/{presenterId}")]
+        public IActionResult DeletePresenter(int id, int presenterId)
+        {
+            var days = SevenDaysService.GetAllDays();
+            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+
+            if (block == null)
+            {
+                return NotFound(new { error = $"Block with id {id} not found" });
+            }
+
+            var presenter = block.Presenters.FirstOrDefault(p => p.Id == presenterId);
+            if (presenter == null)
+            {
+                return NotFound(new { error = $"Presenter with id {presenterId} not found" });
+            }
+
+            block.Presenters.Remove(presenter);
+
+            return NoContent();
+        }
+
+        [HttpDelete("block/{id}/guest/{guestId}")]
+        public IActionResult DeleteGuest(int id, int guestId)
+        {
+            var days = SevenDaysService.GetAllDays();
+            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+
+            if (block == null)
+            {
+                return NotFound(new { error = $"Block with id {id} not found" });
+            }
+
+            var guest = block.Guests.FirstOrDefault(g => g.Id == guestId);
+            if (guest == null)
+            {
+                return NotFound(new { error = $"Guest with id {guestId} not found" });
+            }
+
+            block.Guests.Remove(guest);
+
+            return NoContent();
+        }   
     }
 }

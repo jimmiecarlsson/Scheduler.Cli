@@ -1,4 +1,5 @@
-﻿using Scheduler.Domain.ValueObjects;
+﻿using Scheduler.Domain.Entities;
+using Scheduler.Domain.ValueObjects;
 
 namespace Scheduler.Web.Dtos
 {
@@ -11,7 +12,7 @@ namespace Scheduler.Web.Dtos
         public string Title { get; set; } = string.Empty;
         public string Studio { get; set; } = string.Empty;
 
-        public List<string> Presenters { get; set; } = new();
-        public List<string> Guests { get; set; } = new();
+        public List<Presenter> Presenters { get; set; } = new();
+        public List<Guest> Guests { get; set; } = new();
     }
 }
