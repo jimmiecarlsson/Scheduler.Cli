@@ -60,7 +60,7 @@ Projektet är byggt utan databas (in-memory) och används för att demonstrera A
 ## ⚙️ Teknisk info
 - .NET 9 (ASP.NET Core Web API, Controllers)  
 - In-memory lagring (ingen databas)  
-- OpenAPI/Scalar används för test av endpoints  
+- API:et exponerar en OpenAPI-specifikation och testas via Scalar (inkluderat i projektet).
 
 ---
 
