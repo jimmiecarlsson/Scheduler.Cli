@@ -4,8 +4,8 @@ namespace Scheduler.Domain.Entities
 {
     public class ScheduleBlock
     {
-        public TimeOfDayRange Range { get; set; }
-        public string Title { get; set; }
+        public TimeOfDayRange Range { get; set; } = new(new TimeOnly(0, 0), new TimeOnly(0, 0));
+        public string Title { get; set; } = string.Empty;
 
         public Studio Studio { get; set; }
 
@@ -13,6 +13,8 @@ namespace Scheduler.Domain.Entities
 
         public List<Presenter> Presenters { get; set; } = new();
         public List<Guest> Guests { get; set; } = new();
+
+        public ScheduleBlock() { }
 
         public ScheduleBlock(TimeOfDayRange range, string title, Studio studio, int id)
         {
