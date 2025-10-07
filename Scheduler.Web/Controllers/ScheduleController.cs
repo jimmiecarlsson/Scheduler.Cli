@@ -297,7 +297,7 @@ namespace Scheduler.Web.Controllers
         }
 
         // Endpoint för POST /api/schedule/block/{id}/guests
-        [HttpPost("block/{id}/guests")]
+        [HttpPost("block/{id}/guest")]
         public IActionResult AddGuests(int id, [FromBody] AddGuestsDto guestsDto)
         {
             var days = SevenDaysService.GetAllDays();
@@ -308,18 +308,15 @@ namespace Scheduler.Web.Controllers
                 return NotFound();
             }
 
-            if (string.IsNullOrWhiteSpace(guestsDto.Guests))
+            if (guestsDto.Guests == null || !guestsDto.Guests.Any())
             {
                 return BadRequest(new { error = "Guests cannot be empty" });
             }
 
-            var guest = new Guest
+            foreach (var name in guestsDto.Guests)
             {
-                Id = _nextGuestId++,
-                Name = guestsDto.Guests
-            };
-
-            block.Guests.Add(guest);
+                block.Guests.Add(new Guest(name));
+            }
 
             // Mappa tillbaka till DTO
             var result = new ScheduleBlockDto

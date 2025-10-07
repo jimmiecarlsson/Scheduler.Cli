@@ -2,6 +2,6 @@
 {
     public class AddGuestsDto
     {
-        public string Guests { get; set; } = string.Empty;
+        public List<string> Guests { get; set; } = new();
     }
 }
