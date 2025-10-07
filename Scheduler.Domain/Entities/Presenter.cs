@@ -10,5 +10,13 @@ namespace Scheduler.Domain.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+
+        public Presenter() { }
+
+        // För kod
+        public Presenter (string name)
+        {
+            Name = name;
+        }
     }
 }
