@@ -10,11 +10,20 @@ namespace Scheduler.Web.Data
         {
         }
 
-        // 🔹 Tabeller
+        // Tabeller
         public DbSet<ScheduleDay> ScheduleDays => Set<ScheduleDay>();
         public DbSet<ScheduleBlock> ScheduleBlocks => Set<ScheduleBlock>();
         public DbSet<Presenter> Presenters => Set<Presenter>();
         public DbSet<Guest> Guests => Set<Guest>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // 🔹 Konfigurera TimeOfDayRange som ett "owned type"
+            modelBuilder.Entity<ScheduleBlock>()
+                .OwnsOne(b => b.Range);
+        }
 
     }
 }

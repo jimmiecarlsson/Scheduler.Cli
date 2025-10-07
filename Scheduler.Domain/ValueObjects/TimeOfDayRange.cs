@@ -2,8 +2,10 @@
 using System;
 public class TimeOfDayRange
 {
-    public TimeOnly Start { get; }
-    public TimeOnly End { get; }
+    public TimeOnly Start { get; private set; }
+    public TimeOnly End { get; private set; }
+
+    private TimeOfDayRange() { }
 
     public TimeOfDayRange(TimeOnly start, TimeOnly end)
     {
