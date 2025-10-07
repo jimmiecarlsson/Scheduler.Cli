@@ -5,6 +5,7 @@ using Scheduler.Domain.ValueObjects;
 
 public class ScheduleDay
 {
+    public int Id { get; set; }
     public DateOnly Date { get; set; }
 
     public List<ScheduleBlock> Blocks { get; set; } = new();
