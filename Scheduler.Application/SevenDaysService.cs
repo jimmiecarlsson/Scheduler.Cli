@@ -39,26 +39,16 @@ public class SevenDaysService
     {
         var days = new List<ScheduleDay>();
 
-        for (int i = 0; i < 7; i++)
-        {
-            var date = startDate.AddDays(i);
-            var day = new ScheduleDay(date);
+        // Skapa en dag (idag)
+        var date = startDate;
+        var day = new ScheduleDay(date);
 
-            var range = new TimeOfDayRange(new TimeOnly(8, 0), new TimeOnly(9, 0));
-            var block = new ScheduleBlock(range, "Morgonpass", Studio.Studio1, _nextId++);
-            day.AddBlock(block);
+        // Lägg till ett block 08:00–09:00
+        var range = new TimeOfDayRange(new TimeOnly(8, 0), new TimeOnly(9, 0));
+        var block = new ScheduleBlock(range, "Morgonpass", Studio.Studio1, 1);
+        day.AddBlock(block);
 
-            days.Add(day);
-        }
-
-        // Några extra exempelblock
-        var day3 = days[2];
-        var rangeDay3 = new TimeOfDayRange(new TimeOnly(18, 0), new TimeOnly(20, 0));
-        day3.AddBlock(new ScheduleBlock(rangeDay3, "Live session", Studio.Studio1, _nextId++));
-
-        var day6 = days[5];
-        var rangeDay6 = new TimeOfDayRange(new TimeOnly(0, 0), new TimeOnly(3, 0));
-        day6.AddBlock(new ScheduleBlock(rangeDay6, "Jazz Night", Studio.Studio2, _nextId++));
+        days.Add(day);
 
         return days;
     }
