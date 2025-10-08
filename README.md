@@ -1,11 +1,11 @@
-# 🧭 Scheduler Solution – Clean Architecture (.NET 9)
+# Scheduler Solution – Clean Architecture (.NET 9)
 
 The **Scheduler** solution demonstrates how a modular, layered architecture can evolve from a simple Console App to a fully functional Web API using **Entity Framework Core** and **SQLite**.  
 It follows a *Clean Architecture* pattern, keeping each layer independent and clearly responsible for its own concern.
 
 ---
 
-## 🧩 Overview
+## Overview
 
 | Project | Description |
 |----------|--------------|
@@ -17,7 +17,7 @@ It follows a *Clean Architecture* pattern, keeping each layer independent and cl
 
 ---
 
-## 🧱 Scheduler.Domain
+## Scheduler.Domain
 
 The **Domain layer** represents the business core and is completely independent from any external frameworks.
 
@@ -35,7 +35,7 @@ The **Domain layer** represents the business core and is completely independent 
 
 ---
 
-## ⚙️ Scheduler.Application
+## Scheduler.Application
 
 The **Application layer** orchestrates use cases and defines DTOs and services.
 
@@ -45,33 +45,6 @@ The **Application layer** orchestrates use cases and defines DTOs and services.
 - Previously included in-memory data seeding (`SevenDaysService`), now replaced by EF persistence.
 
 This layer references `Scheduler.Domain` but not any infrastructure components.
-
----
-
-## 💾 Scheduler.Infrastructure
-
-The **Infrastructure layer** connects the domain model to persistence and external services.
-
-### Key features
-- **EF Core DbContext** configured for SQLite.
-- Database migration management.
-- Relationships defined between entities using the Fluent API.
-
-### Example configuration
-
-```csharp
-modelBuilder.Entity<ScheduleBlock>()
-    .HasMany(b => b.Presenters)
-    .WithOne()
-    .OnDelete(DeleteBehavior.Cascade);
-
-modelBuilder.Entity<ScheduleBlock>()
-    .HasMany(b => b.Guests)
-    .WithOne()
-    .OnDelete(DeleteBehavior.Cascade);
-```
-
-These cascade rules ensure that presenters and guests are automatically deleted when their block is removed.
 
 ---
 
@@ -131,7 +104,7 @@ The **Web layer** exposes all functionality as a RESTful API built with ASP.NET 
 
 ---
 
-## 🧭 Scheduler.Cli
+## Scheduler.Cli
 
 The **CLI project** was the initial implementation that ran purely in-memory.  
 It demonstrated scheduling logic and validation before persistence was introduced.
@@ -147,7 +120,7 @@ The same libraries were then referenced by `Scheduler.Web`, enabling data persis
 
 ---
 
-## 🧠 Design Reflection
+## Design Reflection
 
 Migrating from an in-memory prototype to a real database showed the strength of the Clean Architecture:
 - Controllers remained simple and concise.
@@ -158,7 +131,7 @@ Migrating from an in-memory prototype to a real database showed the strength of 
 
 ---
 
-## 🧾 Technical Summary
+## Technical Summary
 
 | Technology | Purpose |
 |-------------|----------|
@@ -170,5 +143,3 @@ Migrating from an in-memory prototype to a real database showed the strength of 
 | **Clean Architecture** | Maintainable, testable design |
 
 ---
-
-© 2025 Scheduler Project – Built for learning modularity, persistence, and clean design in .NET.
