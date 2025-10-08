@@ -1,192 +1,109 @@
-# Scheduler.Web – API för schemaläggning
+# 🧭 Scheduler Solution – Clean Architecture (.NET 9)
 
-Detta projekt är en **C# .NET Web API-applikation** som exponerar endpoints för att hantera ett veckoschema.  
-Projektet är byggt utan databas (in-memory) och används för att demonstrera API-design och CRUD-operationer.  
-
----
-
-## ✨ Endpoints
-
-### Hämta data
-- `GET /api/schedule/all` → hämta hela schemat (alla dagar och block)  
-- `GET /api/schedule/today` → hämta dagens schema  
-- `GET /api/schedule/week` → hämta de kommande 7 dagarna  
-- `GET /api/schedule/{id}` → hämta detaljer för ett specifikt block  
-
-### Hantera block
-- `POST /api/schedule/block` → skapa nytt block  
-- `PUT /api/schedule/block/{id}` → uppdatera ett block (ändra tid, titel, studio)  
-- `DELETE /api/schedule/block/{id}` → ta bort ett block  
-
-### Hantera presenters
-- `POST /api/schedule/block/{id}/presenter` → lägg till en presenter  
-- `DELETE /api/schedule/block/{id}/presenter/{presenterId}` → ta bort en presenter  
-
-### Hantera guests
-- `POST /api/schedule/block/{id}/guest` → lägg till en guest  
-- `DELETE /api/schedule/block/{id}/guest/{guestId}` → ta bort en guest  
+The **Scheduler** solution demonstrates how a modular, layered architecture can evolve from a simple Console App to a fully functional Web API using **Entity Framework Core** and **SQLite**.  
+It follows a *Clean Architecture* pattern, keeping each layer independent and clearly responsible for its own concern.
 
 ---
 
-## 📌 Exempelanrop
+## 🧩 Overview
 
-**POST /api/schedule/block**  
-```json
-{
-  "date": "2025-09-23",
-  "startTime": "10:00",
-  "endTime": "11:00",
-  "title": "Morgonmöte",
-  "studio": "Studio1"
-}
+| Project | Description |
+|----------|--------------|
+| **Scheduler.Domain** | Contains all core business logic, entities, and value objects. |
+| **Scheduler.Application** | Defines use cases, DTOs, and orchestration logic for manipulating domain objects. |
+| **Scheduler.Infrastructure** | Provides persistence using Entity Framework Core and SQLite. |
+| **Scheduler.Web** | ASP.NET Core Web API exposing endpoints for CRUD operations and OpenAPI (Scalar) documentation. |
+| **Scheduler.Cli** | Initial console-based implementation for experimentation and prototyping of scheduling logic. |
+
+---
+
+## 🧱 Scheduler.Domain
+
+The **Domain layer** represents the business core and is completely independent from any external frameworks.
+
+### Key components
+- `ScheduleDay` – represents a day in the schedule.
+- `ScheduleBlock` – defines a block of time with title, studio, presenters, and guests.
+- `Presenter` and `Guest` – entities associated with a block.
+- `TimeOfDayRange` – a Value Object that encapsulates start and end times with validation (no overlapping blocks allowed).
+- `Studio` – an enum representing available studios.
+
+### Responsibilities
+- Contains validation logic (e.g., no overlapping blocks).
+- Ensures all data manipulations maintain domain invariants.
+- Free from database or framework dependencies.
+
+---
+
+## ⚙️ Scheduler.Application
+
+The **Application layer** orchestrates use cases and defines DTOs and services.
+
+### Example responsibilities
+- Converting between domain entities and DTOs (`ScheduleBlockDto`, etc.)
+- Coordinating logic for schedule manipulation.
+- Previously included in-memory data seeding (`SevenDaysService`), now replaced by EF persistence.
+
+This layer references `Scheduler.Domain` but not any infrastructure components.
+
+---
+
+## 💾 Scheduler.Infrastructure
+
+The **Infrastructure layer** connects the domain model to persistence and external services.
+
+### Key features
+- **EF Core DbContext** configured for SQLite.
+- Database migration management.
+- Relationships defined between entities using the Fluent API.
+
+### Example configuration
+
+```csharp
+modelBuilder.Entity<ScheduleBlock>()
+    .HasMany(b => b.Presenters)
+    .WithOne()
+    .OnDelete(DeleteBehavior.Cascade);
+
+modelBuilder.Entity<ScheduleBlock>()
+    .HasMany(b => b.Guests)
+    .WithOne()
+    .OnDelete(DeleteBehavior.Cascade);
 ```
 
-**Svar (201 Created):**
-```json
-{
-  "id": 7,
-  "date": "2025-09-23",
-  "startTime": "10:00",
-  "endTime": "11:00",
-  "title": "Morgonmöte",
-  "studio": "Studio1",
-  "presenters": [],
-  "guests": []
-}
-```
+These cascade rules ensure that presenters and guests are automatically deleted when their block is removed.
 
 ---
 
-## ⚙️ Teknisk info
-- .NET 9 (ASP.NET Core Web API, Controllers)  
-- In-memory lagring (ingen databas)  
-- API:et exponerar en OpenAPI-specifikation och testas via Scalar (inkluderat i projektet).
+## 🌐 Scheduler.Web
 
----
+The **Web layer** exposes all functionality as a RESTful API built with ASP.NET Core.
 
-# Modularity challenge as a limitation
+### Highlights of Version 2
+- ✅ Uses **SQLite** via EF Core instead of in-memory lists.
+- ✅ Full CRUD persistence for `ScheduleBlocks`, `Presenters`, and `Guests`.
+- ✅ Validations executed through domain logic (`TimeOfDayRange`).
+- ✅ Cleanly separated layers with dependency injection.
+- ✅ Fully documented with **OpenAPI/Scalar**.
+- ✅ Tested using **Scalar** UI (all CRUD endpoints verified).
 
-This is a suggestion generated by ChatGPT to solve a **web project starting as a console project**.  
-My goal is to get a clean structure as possible, a way to handle the structure and meanwhile learn about modularity. We'll see how it works.  
+### API Endpoints
 
-## Scheduler
+| Purpose               | Method | Route                                              |
+| --------------------- | ------ | -------------------------------------------------- |
+| Get all schedule data | GET    | `/api/schedule/all`                                |
+| Get today’s schedule  | GET    | `/api/schedule/today`                              |
+| Get upcoming week     | GET    | `/api/schedule/week`                               |
+| Get block by id       | GET    | `/api/schedule/{id}`                               |
+| Create block          | POST   | `/api/schedule/block`                              |
+| Update block          | PUT    | `/api/schedule/block/{id}`                         |
+| Delete block          | DELETE | `/api/schedule/block/{id}`                         |
+| Add presenter         | POST   | `/api/schedule/block/{id}/presenter`               |
+| Delete presenter      | DELETE | `/api/schedule/block/{id}/presenter/{presenterId}` |
+| Add guest             | POST   | `/api/schedule/block/{id}/guest`                   |
+| Delete guest          | DELETE | `/api/schedule/block/{id}/guest/{guestId}`         |
 
-A simple scheduling application cli built as a **Console App** to start with.  
-The structure is modular so the same core logic can later be reused in a Web App.  
-
-### Project structure
-```
-Scheduler.Cli/
-  Program.cs
-  Domain/        // business rules and models
-  Application/   // use cases (e.g. BuildWeekSchedule)
-  Infrastructure // simple adapters (e.g. music library)
-```
-
-### Design principles
-- **Cli** only handles input/output.  
-- **Domain** contains all scheduling rules (no overlaps, 24h coverage, studio assignment).  
-- **Application** orchestrates use cases (build week, fill gaps with music).  
-- **Infrastructure** provides technical helpers (e.g. in-memory music list).  
-
-### Flow (ASCII diagram)
-```
-Start with:
-
-[Cli (ConsoleApp) UI] → calls → [Application Use Case] → uses → [Domain Rules]
-                                            ↘
-                                             → [Infrastructure Adapters]
-
-The goal:
-
-[Cli UI]     [Web UI]
-       \         /
-        \       /
-         v     v
-      [Application Layer]
-        - Orchestration
-        - Ports (IMusicLibrary, IScheduleRepository)
-              |
-              v
-         [Domain Layer]
-           - Core models & rules
-              ^
-              |
-      [Infrastructure Layer]
-        - InMemory / File / Database adapters
-```
-
-### Next step
-When moving to a Web App, the goal is that the Domain, Application, and Infrastructure folders can be lifted into separate class library projects.  
-The logic stays the same — only the presentation layer changes (Console → Web). Fingers crossed :P
-
----
-
-# 🧱 Scheduler.Web – API for Scheduling (v2)
-
-This project has evolved from an in-memory demo API into a **fully persistent web service** built with  
-**.NET 9**, **Entity Framework Core**, and a **Clean Architecture** structure.
-
----
-
-## 🚀 What’s New in Version 2
-
-- ✅ **SQLite database** via Entity Framework Core  
-- ✅ **Full CRUD** persistence for `ScheduleBlocks`, `Presenters`, and `Guests`  
-- ✅ **PUT / DELETE** now save changes directly to the database  
-- ✅ **Validation logic** (no overlapping time ranges) enforced at domain level  
-- ✅ **OpenAPI/Scalar** documentation works with live data  
-- ✅ **Separation of layers**: *Domain / Application / Infrastructure / Web*  
-- ✅ **Cascading deletes** between `ScheduleBlock` → `Presenters` / `Guests`  
-- ✅ **No more in-memory seeding** – database state persists between runs  
-
----
-
-## 📂 Project Structure
-
-```
-Scheduler.Domain/        // Core business rules and entities
-Scheduler.Application/   // Use-case orchestration (DTOs, services)
-Scheduler.Infrastructure // EF Core DbContext and database setup
-Scheduler.Web/           // ASP.NET Core Web API (Controllers + Scalar)
-```
-
-Each layer has a single responsibility:
-- **Domain** – rules, value objects (`TimeOfDayRange`, `Studio`), and entities (`ScheduleDay`, `ScheduleBlock`, `Presenter`, `Guest`)
-- **Application** – orchestrates logic and mappings
-- **Infrastructure** – connects EF Core to SQLite
-- **Web** – exposes endpoints and handles I/O
-
----
-
-## ⚙️ Technical stack
-
-- **.NET 9** (ASP.NET Core Web API)  
-- **Entity Framework Core 9** with **SQLite**  
-- **OpenAPI / Scalar UI** for documentation  
-- **Dependency Injection** and scoped DbContext  
-
----
-
-## 🧩 Endpoints (current)
-
-| Purpose | Method | Route |
-|----------|---------|-------|
-| Get all schedule data | GET | `/api/schedule/all` |
-| Get today’s schedule | GET | `/api/schedule/today` |
-| Get upcoming week | GET | `/api/schedule/week` |
-| Get block by id | GET | `/api/schedule/{id}` |
-| Create block | POST | `/api/schedule/block` |
-| Update block | PUT | `/api/schedule/block/{id}` |
-| Delete block | DELETE | `/api/schedule/block/{id}` |
-| Add presenter | POST | `/api/schedule/block/{id}/presenter` |
-| Delete presenter | DELETE | `/api/schedule/block/{id}/presenter/{presenterId}` |
-| Add guest | POST | `/api/schedule/block/{id}/guest` |
-| Delete guest | DELETE | `/api/schedule/block/{id}/guest/{guestId}` |
-
----
-
-## 📖 Example – Create Block
+### Example Request
 
 **POST /api/schedule/block**
 
@@ -200,7 +117,7 @@ Each layer has a single responsibility:
 }
 ```
 
-**Response (201 Created)**  
+**Response (201 Created):**
 ```json
 {
   "id": 5,
@@ -214,10 +131,44 @@ Each layer has a single responsibility:
 
 ---
 
+## 🧭 Scheduler.Cli
+
+The **CLI project** was the initial implementation that ran purely in-memory.  
+It demonstrated scheduling logic and validation before persistence was introduced.
+
+### Original architecture goals
+- Keep **Domain logic** independent from the presentation layer.
+- Allow both CLI and Web to reuse the same core libraries.
+- Explore modularization and Clean Architecture principles.
+
+### Transition to Web API
+The CLI app proved the business logic worked correctly.  
+The same libraries were then referenced by `Scheduler.Web`, enabling data persistence and OpenAPI documentation without rewriting the core rules.
+
+---
+
 ## 🧠 Design Reflection
 
-Migrating from an in-memory prototype to a real database clearly showed the strength of the architecture:
-- Controllers stayed small and clean  
-- No logic duplication  
-- Each layer could evolve independently  
-- EF Core handled persistence transparently
+Migrating from an in-memory prototype to a real database showed the strength of the Clean Architecture:
+- Controllers remained simple and concise.
+- Logic duplication was eliminated.
+- Each layer could evolve independently.
+- EF Core handled persistence transparently.
+- The architecture is now ready for scaling or cloud deployment.
+
+---
+
+## 🧾 Technical Summary
+
+| Technology | Purpose |
+|-------------|----------|
+| **.NET 9 (ASP.NET Core)** | Web API Framework |
+| **Entity Framework Core 9** | ORM and SQLite provider |
+| **SQLite** | Lightweight local database |
+| **OpenAPI / Scalar** | API documentation and testing |
+| **Dependency Injection** | Layer separation and lifetime control |
+| **Clean Architecture** | Maintainable, testable design |
+
+---
+
+© 2025 Scheduler Project – Built for learning modularity, persistence, and clean design in .NET.
