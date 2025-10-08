@@ -1,23 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scheduler.Application;
-using Scheduler.Web.Dtos;
-using Scheduler.Domain.ValueObjects;
 using Scheduler.Domain.Entities;
+using Scheduler.Domain.ValueObjects;
+using Scheduler.Web.Data;
+using Scheduler.Web.Dtos;
 
 namespace Scheduler.Web.Controllers
 {
+    
+
+
     [ApiController]
     [Route("api/[controller]")]
     public class ScheduleController : ControllerBase
     {
+        private readonly SchedulerDbContext _db;
+
+        public ScheduleController(SchedulerDbContext db)
+        {
+            _db = db;
+        }
+
+
+
         // 🔹 Fält (private property) – lagrar en referens till SevenDaysService
         private readonly SevenDaysService _SevenDaysService;
-
-        // 🔹 Konstruktor – DI-containern skickar in SevenDaysService här
-        public ScheduleController(SevenDaysService sevenDaysService)
-        {
-            _SevenDaysService = sevenDaysService;
-        }
 
         // Räknare för att ge unika IDs till presenters och guests
         private static int _nextPresenterId = 1;
@@ -28,26 +37,14 @@ namespace Scheduler.Web.Controllers
         [HttpGet("all")]
         public IActionResult GetAll()
         {
-            var days = SevenDaysService.GetAllDays();
+            var days = _db.ScheduleDays
+                .Include(d => d.Blocks)
+                    .ThenInclude(b => b.Presenters)
+                .Include(d => d.Blocks)
+                    .ThenInclude(b => b.Guests)
+                .ToList();
 
-            // Mappa varje dag till ScheduleDayDto
-            var result = days.Select(day => new ScheduleDayDto
-            {
-                Date = day.Date.ToString("yyyy-MM-dd"),
-                Blocks = day.Blocks.Select(block => new ScheduleBlockDto
-                {
-                    Id = block.Id,
-                    Date = day.Date.ToString("yyyy-MM-dd"),
-                    StartTime = block.Range.Start.ToString("HH:mm"),
-                    EndTime = block.Range.End.ToString("HH:mm"),
-                    Title = block.Title,
-                    Studio = block.Studio.ToString(),
-                    Presenters = block.Presenters,
-                    Guests = block.Guests
-                }).ToList()
-            }).ToList();
-
-            return Ok(result);
+            return Ok(days);
         }
 
 
@@ -55,10 +52,23 @@ namespace Scheduler.Web.Controllers
         [HttpGet("today")]
         public IActionResult GetToday()
         {
-            var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
+            var todayDate = DateOnly.FromDateTime(DateTime.Today);
 
-            var today = days[0];
+            // 🔹 Hämta dagen från databasen inklusive relationsdata
+            var today = _db.ScheduleDays
+                .Include(d => d.Blocks)
+                    .ThenInclude(b => b.Presenters)
+                .Include(d => d.Blocks)
+                    .ThenInclude(b => b.Guests)
+                .FirstOrDefault(d => d.Date == todayDate);
 
+            // 🔹 Om inget schema finns för idag – returnera tom lista
+            if (today == null)
+            {
+                return Ok(new List<ScheduleBlockDto>());
+            }
+
+            // 🔹 Mappa till DTO
             var result = today.Blocks.Select(block => new ScheduleBlockDto
             {
                 Id = block.Id,
@@ -79,8 +89,20 @@ namespace Scheduler.Web.Controllers
         [HttpGet("week")]
         public IActionResult GetWeek()
         {
-            var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
+            var startDate = DateOnly.FromDateTime(DateTime.Today);
+            var endDate = startDate.AddDays(7);
 
+            // 🔹 Hämta alla dagar från idag och en vecka framåt
+            var days = _db.ScheduleDays
+                .Include(d => d.Blocks)
+                    .ThenInclude(b => b.Presenters)
+                .Include(d => d.Blocks)
+                    .ThenInclude(b => b.Guests)
+                .Where(d => d.Date >= startDate && d.Date < endDate)
+                .OrderBy(d => d.Date)
+                .ToList();
+
+            // 🔹 Mappa till DTO
             var result = days.Select(day => new
             {
                 Date = day.Date.ToString("yyyy-MM-dd"),
@@ -104,20 +126,30 @@ namespace Scheduler.Web.Controllers
         [HttpGet("{id}")]
         public IActionResult GetScheduleById(int id)
         {
-
-         var days = SevenDaysService.GetSevenDays(DateOnly.FromDateTime(DateTime.Today));
-
-            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+            // Hämta blocket inklusive relationer
+            var block = _db.ScheduleBlocks
+                .Include(b => b.Presenters)
+                .Include(b => b.Guests)
+                .Include(b => b.Range) // om Range är en egen typ (annars kan detta tas bort)
+                .FirstOrDefault(b => b.Id == id);
 
             if (block == null)
             {
                 return NotFound();
             }
 
+            // Hämta vilken dag blocket tillhör (enbart om du behöver Date)
+            var day = _db.ScheduleDays
+                .Include(d => d.Blocks)
+                .FirstOrDefault(d => d.Blocks.Contains(block));
+
+            var date = day != null ? day.Date : DateOnly.MinValue;
+
+            // Mappa till DTO
             var result = new ScheduleBlockDto
             {
                 Id = block.Id,
-                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
+                Date = date.ToString("yyyy-MM-dd"),
                 StartTime = block.Range.Start.ToString("HH:mm"),
                 EndTime = block.Range.End.ToString("HH:mm"),
                 Title = block.Title,
@@ -135,156 +167,149 @@ namespace Scheduler.Web.Controllers
         {
             try
             {
-                // Konvertera DTO-värden till domänens typer
+                // 🔹 Konvertera inkommande värden
                 var date = DateOnly.Parse(blockDto.Date);
                 var start = TimeOnly.Parse(blockDto.StartTime);
                 var end = TimeOnly.Parse(blockDto.EndTime);
                 var title = blockDto.Title;
                 var studio = Enum.Parse<Studio>(blockDto.Studio);
 
-                // Skapa blocket via applikationslagret
-                var block = SevenDaysService.AddBlock(date, start, end, title, studio);
+                // 🔹 Hämta eller skapa dagen
+                var day = _db.ScheduleDays
+                    .Include(d => d.Blocks)
+                    .FirstOrDefault(d => d.Date == date);
 
-                // Mappa tillbaka till DTO för svaret
+                if (day == null)
+                {
+                    day = new ScheduleDay(date);
+                    _db.ScheduleDays.Add(day);
+                }
+
+                // 🔹 Skapa blocket
+                var range = new TimeOfDayRange(start, end);
+                var block = new ScheduleBlock(range, title, studio);
+
+                // 🔹 Lägg till blocket via domänlogiken
+                day.AddBlock(block);
+
+                // 🔹 Spara till databasen
+                _db.SaveChanges();
+
+                // 🔹 Mappa till DTO
                 var result = new ScheduleBlockDto
                 {
                     Id = block.Id,
-                    Date = date.ToString("yyyy-MM-dd"),
+                    Date = day.Date.ToString("yyyy-MM-dd"),
                     StartTime = start.ToString("HH:mm"),
                     EndTime = end.ToString("HH:mm"),
                     Title = title,
                     Studio = studio.ToString(),
-                    Presenters = block.Presenters,
-                    Guests = block.Guests
+                    //Presenters = block.Presenters,
+                    //Guests = block.Guests
                 };
 
-                // Returnera 201 Created med blocket
+                // 🔹 Returnera Created (201)
                 return CreatedAtAction(nameof(GetScheduleById), new { id = block.Id }, result);
             }
             catch (ArgumentException ex)
             {
-                // T.ex. tidskrock eller ogiltig studio
                 return Conflict(new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                // Något annat gick snett
                 return BadRequest(new { error = ex.Message });
             }
-        }
-
-        // Endpoint för DELETE /api/schedule/block/{id}
-        [HttpDelete("block/{id}")]
-        public IActionResult DeleteBlock(int id)
-        {
-            var posts = SevenDaysService.GetAllDays();
-
-            var block = posts.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
-
-            if (block == null)
-            {
-                return NotFound();
-            }
-            var day = posts.FirstOrDefault(d => d.Blocks.Contains(block));
-            if (day != null)
-            {
-                day.Blocks.Remove(block);
-            }
-
-            return NoContent();
         }
 
         // Endpoint för PUT /api/schedule/block/{id}
         [HttpPut("block/{id}")]
         public IActionResult UpdateBlock(int id, [FromBody] ScheduleBlockDto blockDto)
         {
-            var days = SevenDaysService.GetAllDays();
-            var post = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
-
-            if (post == null)
+            try
             {
-                return NotFound();
-            }
+                // Hitta rätt dag med sina block
+                var day = _db.ScheduleDays
+                    .Include(d => d.Blocks)
+                    .FirstOrDefault(d => d.Blocks.Any(b => b.Id == id));
 
-            var day = days.FirstOrDefault(d => d.Blocks.Contains(post));
-            if (day == null)
-            {
-                return NotFound();
-            }
+                if (day == null)
+                    return NotFound(new { error = $"Block med ID {id} hittades inte." });
 
-            // Skapa nytt intervall – här fångas fel om sluttiden <= starttiden
-            var newRange = new TimeOfDayRange(
-                TimeOnly.Parse(blockDto.StartTime),
-                TimeOnly.Parse(blockDto.EndTime)
-            );
+                // Hitta blocket
+                var block = day.Blocks.FirstOrDefault(b => b.Id == id);
+                if (block == null)
+                    return NotFound(new { error = $"Block med ID {id} hittades inte." });
 
-            // Kontrollera krockar mot andra block samma dag
-            foreach (var existing in day.Blocks)
-            {
-                if (existing.Id != post.Id) // ignorera blocket självt
+                // Uppdatera värden
+                var newRange = new TimeOfDayRange(
+                    TimeOnly.Parse(blockDto.StartTime),
+                    TimeOnly.Parse(blockDto.EndTime)
+                );
+
+                block.Update(newRange, blockDto.Title, Enum.Parse<Studio>(blockDto.Studio));
+
+                // Spara i databasen
+                _db.SaveChanges();
+
+                // Returnera uppdaterad DTO
+                var result = new ScheduleBlockDto
                 {
-                    if (newRange.Start < existing.Range.End && existing.Range.Start < newRange.End)
-                    {
-                        return Conflict(new { error = $"Block overlaps with existing block {existing.Range.Start} - {existing.Range.End}." });
-                    }
-                }
+                    Id = block.Id,
+                    Date = day.Date.ToString("yyyy-MM-dd"),
+                    StartTime = block.Range.Start.ToString("HH:mm"),
+                    EndTime = block.Range.End.ToString("HH:mm"),
+                    Title = block.Title,
+                    Studio = block.Studio.ToString()
+                };
+
+                return Ok(result);
             }
-
-            // Validera Studio
-            var studio = Enum.Parse<Studio>(blockDto.Studio);
-            if (studio == Studio.Unknown)
+            catch (ArgumentException ex)
             {
-                return BadRequest(new { error = "Studio cannot be Unknown" });
+                return Conflict(new { error = ex.Message });
             }
-
-            // Uppdatera blocket
-            post.Title = blockDto.Title;
-            post.Range = newRange;
-            post.Studio = studio;
-
-            // Mappa till DTO för svaret
-            var result = new ScheduleBlockDto
+            catch (Exception ex)
             {
-                Id = post.Id,
-                Date = day.Date.ToString("yyyy-MM-dd"),
-                StartTime = post.Range.Start.ToString("HH:mm"),
-                EndTime = post.Range.End.ToString("HH:mm"),
-                Title = post.Title,
-                Studio = post.Studio.ToString()
-            };
-
-            return Ok(result);
+                return BadRequest(new { error = ex.Message });
+            }
         }
+
 
         // Endpoint för POST /api/schedule/block/{id}/presenter
         [HttpPost("block/{id}/presenter")]
         public IActionResult AddPresenter(int id, [FromBody] AddPresenterDto presenterDto)
         {
-            var days = SevenDaysService.GetAllDays();
-            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+            if (string.IsNullOrWhiteSpace(presenterDto.Name))
+                return BadRequest(new { error = "Presenter name cannot be empty" });
+
+            // 🔹 Hämta blocket inklusive presenters och guests
+            var block = _db.ScheduleBlocks
+                .Include(b => b.Presenters)
+                .Include(b => b.Guests)
+                .FirstOrDefault(b => b.Id == id);
 
             if (block == null)
-            {
-                return NotFound();
-            }
+                return NotFound(new { error = $"Block with id {id} not found" });
 
-            if (string.IsNullOrWhiteSpace(presenterDto.Name))
-            {
-                return BadRequest(new { error = "Presenter name cannot be empty" });
-            }
-            var presenter = new Presenter
-            {
-                Id = _nextPresenterId++,
-                Name = presenterDto.Name
-            };
-
+            // 🔹 Skapa ny presenter och lägg till i listan
+            var presenter = new Presenter { Name = presenterDto.Name };
             block.Presenters.Add(presenter);
 
-            // Mappa tillbaka till DTO
+            // 🔹 Spara till databasen
+            _db.SaveChanges();
+
+            // 🔹 Hämta dagen för att kunna returnera datum
+            var day = _db.ScheduleDays
+                .Include(d => d.Blocks)
+                .FirstOrDefault(d => d.Blocks.Any(b => b.Id == id));
+
+            var date = day?.Date.ToString("yyyy-MM-dd") ?? string.Empty;
+
+            // 🔹 Mappa till DTO
             var result = new ScheduleBlockDto
             {
                 Id = block.Id,
-                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
+                Date = date,
                 StartTime = block.Range.Start.ToString("HH:mm"),
                 EndTime = block.Range.End.ToString("HH:mm"),
                 Title = block.Title,
@@ -295,34 +320,49 @@ namespace Scheduler.Web.Controllers
 
             return Ok(result);
         }
+
 
         // Endpoint för POST /api/schedule/block/{id}/guests
         [HttpPost("block/{id}/guest")]
         public IActionResult AddGuests(int id, [FromBody] AddGuestsDto guestsDto)
         {
-            var days = SevenDaysService.GetAllDays();
-            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
+            // 🔹 Validera input
+            if (guestsDto.Guests == null || !guestsDto.Guests.Any())
+                return BadRequest(new { error = "Guests cannot be empty" });
+
+            // 🔹 Hämta blocket från databasen inklusive presenters och guests
+            var block = _db.ScheduleBlocks
+                .Include(b => b.Presenters)
+                .Include(b => b.Guests)
+                .FirstOrDefault(b => b.Id == id);
 
             if (block == null)
-            {
-                return NotFound();
-            }
+                return NotFound(new { error = $"Block with id {id} not found" });
 
-            if (guestsDto.Guests == null || !guestsDto.Guests.Any())
-            {
-                return BadRequest(new { error = "Guests cannot be empty" });
-            }
-
+            // 🔹 Lägg till varje gäst
             foreach (var name in guestsDto.Guests)
             {
-                block.Guests.Add(new Guest(name));
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    block.Guests.Add(new Guest(name));
+                }
             }
 
-            // Mappa tillbaka till DTO
+            // 🔹 Spara till databasen
+            _db.SaveChanges();
+
+            // 🔹 Hämta dagen blocket tillhör (för att kunna sätta Date i svaret)
+            var day = _db.ScheduleDays
+                .Include(d => d.Blocks)
+                .FirstOrDefault(d => d.Blocks.Any(b => b.Id == id));
+
+            var date = day?.Date.ToString("yyyy-MM-dd") ?? string.Empty;
+
+            // 🔹 Mappa tillbaka till DTO
             var result = new ScheduleBlockDto
             {
                 Id = block.Id,
-                Date = days.First(d => d.Blocks.Contains(block)).Date.ToString("yyyy-MM-dd"),
+                Date = date,
                 StartTime = block.Range.Start.ToString("HH:mm"),
                 EndTime = block.Range.End.ToString("HH:mm"),
                 Title = block.Title,
@@ -334,48 +374,94 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
+        // Endpoint för DELETE /api/schedule/block/{id}
+        [HttpDelete("block/{id}")]
+        public IActionResult DeleteBlock(int id)
+        {
+            try
+            {
+                // Hitta rätt dag och inkludera blocken
+
+                var day = _db.ScheduleDays
+                    .Include(d => d.Blocks)
+                    .FirstOrDefault(d => d.Id == id);
+
+                if(day == null) return NotFound(new { error = $"Block Id {id} hittades inte.(1)" });
+
+                var block = day.Blocks
+                    .FirstOrDefault(b => b.Id == id);
+
+                if (block == null) return NotFound(new { error = $"Block id {id} hittades inte.(2)" });
+
+                day.RemoveBlock(block);
+
+                _db.SaveChanges();
+               
+                return Ok(new { message = $"Block {id} har tagit bort."});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+
+        }
+
+
         [HttpDelete("block/{id}/presenter/{presenterId}")]
         public IActionResult DeletePresenter(int id, int presenterId)
         {
-            var days = SevenDaysService.GetAllDays();
-            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
-
-            if (block == null)
+            try
             {
-                return NotFound(new { error = $"Block with id {id} not found" });
+                var block = _db.ScheduleBlocks
+                    .Include(d => d.Presenters)
+                    .FirstOrDefault(d => d.Id==id);
+
+                if (block == null) return NotFound(new {error = $"Block Id {id} hittades inte" });
+
+                var presenter = block.Presenters.FirstOrDefault(d => d.Id== presenterId);
+
+                if (presenter == null) return NotFound(new { error = $"Presenter Id {presenterId} hittades inte i block {id}" }); 
+
+                block.Presenters.Remove(presenter);
+                _db.SaveChanges();
+
+                return Ok(new { message = $"Presenter {presenterId} togs bort från block {id}" });
             }
-
-            var presenter = block.Presenters.FirstOrDefault(p => p.Id == presenterId);
-            if (presenter == null)
-            {
-                return NotFound(new { error = $"Presenter with id {presenterId} not found" });
+            catch (Exception ex)
+            { 
+                return BadRequest(new {error = ex.Message});
             }
-
-            block.Presenters.Remove(presenter);
-
-            return NoContent();
         }
+
 
         [HttpDelete("block/{id}/guest/{guestId}")]
         public IActionResult DeleteGuest(int id, int guestId)
         {
-            var days = SevenDaysService.GetAllDays();
-            var block = days.SelectMany(d => d.Blocks).FirstOrDefault(b => b.Id == id);
-
-            if (block == null)
+            try
             {
-                return NotFound(new { error = $"Block with id {id} not found" });
-            }
+                var block = _db.ScheduleBlocks
+                .Include(b => b.Guests)
+                .FirstOrDefault(b => b.Id == id);
 
-            var guest = block.Guests.FirstOrDefault(g => g.Id == guestId);
-            if (guest == null)
+                if (block == null)
+                    return NotFound(new { error = $"Block id {id} hittades inte." });
+
+                var guest = block.Guests
+                    .FirstOrDefault(g => g.Id == guestId);
+
+                if (guest == null)
+                    return NotFound(new { error = $"Gäst id {guestId} hittades inte i block {id}." });
+
+                block.Guests.Remove(guest);
+                _db.SaveChanges();
+
+                return Ok(new { message = $"Gäst {guestId} togs bort från block {id}."});
+            }
+            catch (Exception ex)
             {
-                return NotFound(new { error = $"Guest with id {guestId} not found" });
+                return BadRequest(new { error = ex.Message});
             }
+        }
 
-            block.Guests.Remove(guest);
-
-            return NoContent();
-        }   
     }
 }

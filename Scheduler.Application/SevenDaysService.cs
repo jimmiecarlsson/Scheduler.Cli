@@ -15,43 +15,43 @@ public class SevenDaysService
     // 2️⃣ Hämtar alla dagar – om de inte finns, seedas de
     public static List<ScheduleDay> GetSevenDays(DateOnly startDate)
     {
-        if (_days == null)
-        {
-            _days = SeedDays(startDate);
-        }
+        //if (_days == null)
+        //{
+        //    _days = SeedDays(startDate);
+        //}
 
         return _days;
     }
 
     public static List<ScheduleDay> GetAllDays()
     {
-        if (_days == null)
-        {
-            _days = SeedDays(DateOnly.FromDateTime(DateTime.Today));
-        }
+        //if (_days == null)
+        //{
+        //    _days = SeedDays(DateOnly.FromDateTime(DateTime.Today));
+        //}
 
         return _days;
     }
 
 
     // 3️⃣ Hjälpmetod för seed-data
-    private static List<ScheduleDay> SeedDays(DateOnly startDate)
-    {
-        var days = new List<ScheduleDay>();
+    //private static List<ScheduleDay> SeedDays(DateOnly startDate)
+    //{
+    //    var days = new List<ScheduleDay>();
 
-        // Skapa en dag (idag)
-        var date = startDate;
-        var day = new ScheduleDay(date);
+    //    // Skapa en dag (idag)
+    //    var date = startDate;
+    //    var day = new ScheduleDay(date);
 
-        // Lägg till ett block 08:00–09:00
-        var range = new TimeOfDayRange(new TimeOnly(8, 0), new TimeOnly(9, 0));
-        var block = new ScheduleBlock(range, "Morgonpass", Studio.Studio1, 1);
-        day.AddBlock(block);
+    //    // Lägg till ett block 08:00–09:00
+    //    var range = new TimeOfDayRange(new TimeOnly(8, 0), new TimeOnly(9, 0));
+    //    var block = new ScheduleBlock(range, "Morgonpass", Studio.Studio1, 1);
+    //    day.AddBlock(block);
 
-        days.Add(day);
+    //    days.Add(day);
 
-        return days;
-    }
+    //    return days;
+    //}
 
     // 4️⃣ Ny metod för att skapa ett block
     public static ScheduleBlock AddBlock(DateOnly date, TimeOnly start, TimeOnly end, string title, Studio studio)
@@ -66,7 +66,7 @@ public class SevenDaysService
         }
 
         var range = new TimeOfDayRange(start, end);
-        var block = new ScheduleBlock(range, title, studio, _nextId++);
+        var block = new ScheduleBlock(range, title, studio);
         day.AddBlock(block);
 
         return block;

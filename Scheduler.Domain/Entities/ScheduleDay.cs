@@ -35,5 +35,11 @@ public class ScheduleDay
 
         Blocks.Add(newblock);
     }
+
+    public void RemoveBlock(ScheduleBlock block)
+    {
+        if(block == null) throw new ArgumentNullException(nameof(block));
+        Blocks.Remove(block);
+    }
 }
 

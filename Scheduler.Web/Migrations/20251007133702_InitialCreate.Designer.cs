@@ -11,7 +11,7 @@ using Scheduler.Web.Data;
 namespace Scheduler.Web.Migrations
 {
     [DbContext(typeof(SchedulerDbContext))]
-    [Migration("20251007131753_InitialCreate")]
+    [Migration("20251007133702_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

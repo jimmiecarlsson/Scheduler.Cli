@@ -118,4 +118,106 @@ The goal:
 
 ### Next step
 When moving to a Web App, the goal is that the Domain, Application, and Infrastructure folders can be lifted into separate class library projects.  
-The logic stays the same — only the presentation layer changes (Console → Web). Fingers crossed :P  
+The logic stays the same — only the presentation layer changes (Console → Web). Fingers crossed :P
+
+---
+
+# 🧱 Scheduler.Web – API for Scheduling (v2)
+
+This project has evolved from an in-memory demo API into a **fully persistent web service** built with  
+**.NET 9**, **Entity Framework Core**, and a **Clean Architecture** structure.
+
+---
+
+## 🚀 What’s New in Version 2
+
+- ✅ **SQLite database** via Entity Framework Core  
+- ✅ **Full CRUD** persistence for `ScheduleBlocks`, `Presenters`, and `Guests`  
+- ✅ **PUT / DELETE** now save changes directly to the database  
+- ✅ **Validation logic** (no overlapping time ranges) enforced at domain level  
+- ✅ **OpenAPI/Scalar** documentation works with live data  
+- ✅ **Separation of layers**: *Domain / Application / Infrastructure / Web*  
+- ✅ **Cascading deletes** between `ScheduleBlock` → `Presenters` / `Guests`  
+- ✅ **No more in-memory seeding** – database state persists between runs  
+
+---
+
+## 📂 Project Structure
+
+```
+Scheduler.Domain/        // Core business rules and entities
+Scheduler.Application/   // Use-case orchestration (DTOs, services)
+Scheduler.Infrastructure // EF Core DbContext and database setup
+Scheduler.Web/           // ASP.NET Core Web API (Controllers + Scalar)
+```
+
+Each layer has a single responsibility:
+- **Domain** – rules, value objects (`TimeOfDayRange`, `Studio`), and entities (`ScheduleDay`, `ScheduleBlock`, `Presenter`, `Guest`)
+- **Application** – orchestrates logic and mappings
+- **Infrastructure** – connects EF Core to SQLite
+- **Web** – exposes endpoints and handles I/O
+
+---
+
+## ⚙️ Technical stack
+
+- **.NET 9** (ASP.NET Core Web API)  
+- **Entity Framework Core 9** with **SQLite**  
+- **OpenAPI / Scalar UI** for documentation  
+- **Dependency Injection** and scoped DbContext  
+
+---
+
+## 🧩 Endpoints (current)
+
+| Purpose | Method | Route |
+|----------|---------|-------|
+| Get all schedule data | GET | `/api/schedule/all` |
+| Get today’s schedule | GET | `/api/schedule/today` |
+| Get upcoming week | GET | `/api/schedule/week` |
+| Get block by id | GET | `/api/schedule/{id}` |
+| Create block | POST | `/api/schedule/block` |
+| Update block | PUT | `/api/schedule/block/{id}` |
+| Delete block | DELETE | `/api/schedule/block/{id}` |
+| Add presenter | POST | `/api/schedule/block/{id}/presenter` |
+| Delete presenter | DELETE | `/api/schedule/block/{id}/presenter/{presenterId}` |
+| Add guest | POST | `/api/schedule/block/{id}/guest` |
+| Delete guest | DELETE | `/api/schedule/block/{id}/guest/{guestId}` |
+
+---
+
+## 📖 Example – Create Block
+
+**POST /api/schedule/block**
+
+```json
+{
+  "date": "2025-10-08",
+  "startTime": "10:00",
+  "endTime": "12:00",
+  "title": "EF Test",
+  "studio": "Studio1"
+}
+```
+
+**Response (201 Created)**  
+```json
+{
+  "id": 5,
+  "date": "2025-10-08",
+  "startTime": "10:00",
+  "endTime": "12:00",
+  "title": "EF Test",
+  "studio": "Studio1"
+}
+```
+
+---
+
+## 🧠 Design Reflection
+
+Migrating from an in-memory prototype to a real database clearly showed the strength of the architecture:
+- Controllers stayed small and clean  
+- No logic duplication  
+- Each layer could evolve independently  
+- EF Core handled persistence transparently
