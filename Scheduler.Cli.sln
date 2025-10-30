@@ -11,6 +11,28 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler.Application", "Sc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler.Domain", "Scheduler.Domain\Scheduler.Domain.csproj", "{8F59A48E-B7F7-4AED-9AF0-F730C3330EA7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontend", "frontend", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "scheduler-web-ui", "frontend\scheduler-web-ui\", "{7C20DAF6-4BC2-A1F8-2017-57AFC84F48CF}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_54701"
+		Debug.AspNetCompiler.PhysicalPath = "frontend\scheduler-web-ui\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_54701\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_54701"
+		Release.AspNetCompiler.PhysicalPath = "frontend\scheduler-web-ui\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_54701\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "54701"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +55,16 @@ Global
 		{8F59A48E-B7F7-4AED-9AF0-F730C3330EA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F59A48E-B7F7-4AED-9AF0-F730C3330EA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F59A48E-B7F7-4AED-9AF0-F730C3330EA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C20DAF6-4BC2-A1F8-2017-57AFC84F48CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C20DAF6-4BC2-A1F8-2017-57AFC84F48CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C20DAF6-4BC2-A1F8-2017-57AFC84F48CF}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C20DAF6-4BC2-A1F8-2017-57AFC84F48CF}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7C20DAF6-4BC2-A1F8-2017-57AFC84F48CF} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0536CC7-4C55-4B3B-B2FB-A29BFFF9AD53}

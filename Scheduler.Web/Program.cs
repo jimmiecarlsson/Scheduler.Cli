@@ -19,6 +19,19 @@ options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
 
 builder.Services.AddScoped<SevenDaysService>();
 
+//CORS
+var corsPolicy = "FrontendPolicy";
+builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(corsPolicy, policy => 
+        policy.WithOrigins("http://localhost:5174")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+    }
+);
+
+
+
 var app = builder.Build();
 
 // Dev
@@ -29,6 +42,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(corsPolicy);
 app.MapControllers();
 
 // Add endpoints in /Controllers/
