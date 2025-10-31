@@ -1,9 +1,12 @@
 ﻿import { useEffect, useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { getById, deleteBlock } from "../api/scheduleApi";
+import { useNavigate } from "react-router-dom";
 
-function BsModal({ show, onHide, id, onDeleted}) {
+function BsModal({ show, onHide, id, onDeleted }) {
+
     const [data, setData] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!id) return;
@@ -56,6 +59,11 @@ function BsModal({ show, onHide, id, onDeleted}) {
                 )}
             </Modal.Body>
             <Modal.Footer>
+                <Button variant="primary" onClick={() => {
+                    onHide(); navigate(`/edit/${data.id}`);
+                }}>
+                    Redigera
+                </Button>
                 <Button variant="danger" onClick={handleDelete}>
                     Ta bort
                 </Button>

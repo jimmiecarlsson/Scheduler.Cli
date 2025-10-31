@@ -20,10 +20,7 @@ export async function deleteBlock(id) {
     return response.data;
 }
 
-//export function createBlock(dto) {
-//    return http.post("/api/schedule/block", dto).then(r => r.data);
-//}
-
-//export function deleteBlock(id) {
-//    return http.delete(`/api/schedule/block/${id}`).then(r => r.data);
-//}
+export async function updateBlock(id, dto) {
+    const res = await http.put(`/api/schedule/block/${id}`, dto);
+    return res.data;
+}

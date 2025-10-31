@@ -8,6 +8,8 @@ import Container from 'react-bootstrap/Container';
 import Home from "./pages/Home";
 import All from "./pages/All";
 import Today from "./pages/Today";
+import EditBlock from './components/EditBlock';
+
 
 import Menu from "./components/Menu";
 import NewBlock from './pages/NewBlock';
@@ -26,6 +28,7 @@ function App() {
                     <Route path="/all" element={<All />} />
                       <Route path="/today" element={<Today />} />
                       <Route path="/newblock" element={<NewBlock />} />
+                      <Route path="/edit/:id" element={<EditBlock />} />
                 </Routes>
             </Container>
           </BrowserRouter>

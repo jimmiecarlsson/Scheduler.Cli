@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react'
 
 import { Row, Col, ListGroup, Alert, Button } from 'react-bootstrap';
-import { FaEdit } from "react-icons/fa";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 import { useEffect } from 'react';
 import { getAll } from '../api/scheduleApi';
@@ -73,12 +73,12 @@ function ScheduleAll() {
                                 (
                                     <ListGroup.Item key={block.id} className="list-group-item-action">
                                         <div>
-                                            <small>Datum: {day.date}</small>
+                                            <small>Datum: {day.date} : Block ID:{block.id}</small>
                                             <div>
                                                 {block.range.start.slice(0, 5)} - {block.range.end.slice(0, 5)} <span className="fw-bold"> - {block.title}</span> - Längd: {block.range.duration.slice(0, 5)}
                                             </div>
                                         </div>
-                                        <div>
+                                        <div className="d-flex align-items-center">
                                             {block.presenters?.length > 0 && (
                                                 <div>
                                                     med <span className="fw-bold">{block.presenters.map(p => p.name).join(", ")} </span>
@@ -88,9 +88,9 @@ function ScheduleAll() {
                                                 </div>
                                             )}
                                             {block.guests?.length > 0 && (
-                                                <span>Gäst: {block.guests.map(g => g.name).join(", ")}</span>
+                                                <span className="mx-2"> Gäst/Gäster: {block.guests.map(g => g.name).join(", ")}</span>
                                             )}
-                                            <Button className="btn btn-primary ms-auto" onClick={() => handleOpen(block.id)}>Granska</Button>
+                                            <Button className="btn btn-primary ms-auto" onClick={() => handleOpen(block.id)}><FaMagnifyingGlass/></Button>
                                         </div>
                                     </ListGroup.Item>
                                 )

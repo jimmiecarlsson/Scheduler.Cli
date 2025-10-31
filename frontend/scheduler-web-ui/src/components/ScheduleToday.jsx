@@ -7,17 +7,27 @@ import Alert from 'react-bootstrap/Alert';
 import { useEffect } from 'react';
 import { getToday } from '../api/scheduleApi';
 
-const ScheduleToday = () => {
+const ScheduleToday = ({ onLoaded, showList=true}) => {
 
     const [schedule, setSchedule] = useState([]);
     const [error, setError] = useState([]);
 
     useEffect(() => {
-        console.log("getToday körs");
-        getToday()
-            .then(data => setSchedule(data))
-            .catch(err => setError(err.message));
+        const fetchData = () => {
+            getToday()
+                .then(data => {
+                    setSchedule(data);
+                    if (onLoaded) onLoaded(data);
+                })
+                .catch(err => setError(err.message));
+        };
+        fetchData();
+        const intervalId = setInterval(fetchData, 60000);
+
+        return () => clearInterval(intervalId);
     }, []);
+
+    if (!showList) return null;
 
     return (
         <>

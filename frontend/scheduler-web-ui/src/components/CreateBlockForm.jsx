@@ -1,19 +1,19 @@
 ﻿import { useState } from "react";
 import { Form, Button, Alert, Row, Col, Container } from "react-bootstrap";
-import { createBlock } from "../api/scheduleApi";
+import { createBlock, updateBlock } from "../api/scheduleApi";
 
 
 
 import React from 'react'
 
-const CreateBlockForm = () => {
+const CreateBlockForm = ({ isEdit = false, blockId = null, initialData = {}, onSaved }) => {
 
     const [formData, setFormData] = useState({
-        date: "",
-        startTime: "",
-        endTime: "",
-        title: "",
-        studio: ""
+        date: initialData.date || "",
+        startTime: initialData.startTime || "",
+        endTime: initialData.endTime || "",
+        title: initialData.title || "",
+        studio: initialData.studio || ""
     });
 
     const [status, setStatus] = useState(null);
@@ -23,10 +23,20 @@ const CreateBlockForm = () => {
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
+
         try {
-            await createBlock(formData);
-            setStatus("Block sparat!");
+
+            if (isEdit) {
+                await updateBlock(blockId, formData);
+                setStatus("Blocket uppdaterades!");
+            } else {
+                await createBlock(formData);
+                setStatus("Block sparat!");
+            }
+
+            if (onSaved) onSaved();
         } catch (err) {
             setStatus("Fel: " + err.message);
         }
