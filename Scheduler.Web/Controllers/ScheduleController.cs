@@ -383,21 +383,38 @@ namespace Scheduler.Web.Controllers
                 // Hitta rätt dag och inkludera blocken
 
                 var day = _db.ScheduleDays
-                    .Include(d => d.Blocks)
-                    .FirstOrDefault(d => d.Id == id);
+            .Include(d => d.Blocks)
+            .FirstOrDefault(d => d.Blocks.Any(b => b.Id == id));
 
-                if(day == null) return NotFound(new { error = $"Block Id {id} hittades inte.(1)" });
+                var block = day?.Blocks.FirstOrDefault(b => b.Id == id);
 
-                var block = day.Blocks
-                    .FirstOrDefault(b => b.Id == id);
+                if (block == null)
+                    return NotFound(new { error = $"Block Id {id} hittades inte." });
 
-                if (block == null) return NotFound(new { error = $"Block id {id} hittades inte.(2)" });
-
-                day.RemoveBlock(block);
-
+                _db.ScheduleBlocks.Remove(block);
                 _db.SaveChanges();
-               
-                return Ok(new { message = $"Block {id} har tagit bort."});
+
+                return Ok(new { message = $"Block {id} har tagits bort." });
+
+                // gamla med bugg
+                //var day = _db.ScheduleDays
+                //    .Include(d => d.Blocks)
+                //    .FirstOrDefault(d => d.Id == id);
+
+                //if(day == null) return NotFound(new { error = $"Block Id {id} hittades inte.(1)" });
+
+                //var block = day.Blocks
+                //    .FirstOrDefault(b => b.Id == id);
+
+                //if (block == null) return NotFound(new { error = $"Block id {id} hittades inte.(2)" });
+
+                //day.RemoveBlock(block);
+
+                //_db.SaveChanges();
+
+                //return Ok(new { message = $"Block {id} har tagit bort."});
+
+
             }
             catch (Exception ex)
             {
