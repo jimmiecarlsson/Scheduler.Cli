@@ -1,22 +1,31 @@
 ﻿
+
 import React from 'react'
 import { CgScrollV } from "react-icons/cg";
-import Container from 'react-bootstrap/Container'
+import { Container, Row, Col } from 'react-bootstrap'
 import ScheduleToday from '../components/ScheduleToday';
+import Hero from "../components/layout/Hero"
 
 const UpComing = () => {
+
+
     return (
         <>
-            <section className="purple-rain p-5">
-                <h1 className="display-1">Upcoming Schedule</h1>
-                <p className="lead fw-bold">
-                    Our mission is loud and clear — we’re here to rock around the clock.
-                </p>
-                <CgScrollV className="fs-1 mb-1" />
-            </section>
-            <Container className="purple-rain p-5 mt-5">
-                <ScheduleToday/>
-            </Container>
+            <Hero
+                title="Upcoming Schedule"
+                subtitle="Our mission is loud and clear — we’re here to rock around the clock."
+                ctaText="Rock Me"
+                ctaHref="/upcoming#rest"
+            />
+
+           
+                <main className="fill purple-rain p-5" id="rest">
+                <Row className="justify-content-center fill mb-5">
+                    <Col md={10} lg={8}>
+                            <ScheduleToday />
+                        </Col>
+                    </Row>
+                </main>
         </>
     )
 }

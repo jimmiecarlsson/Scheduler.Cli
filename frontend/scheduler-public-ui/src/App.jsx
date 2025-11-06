@@ -1,20 +1,23 @@
 import { useState } from 'react'
 import './App.css'
 import Container from 'react-bootstrap/Container';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+
 
 function App() {
     const [count, setCount] = useState(0)
 
+    const location = useLocation();
+
+    const isUpcoming = location.pathname === '/upcoming';
+
     return (
         <>
-            <Container className="cover-container">
-                <Header />
-                    <Outlet />
-                <Footer />
-            </Container>
+            <Header />
+                <Outlet />
+            <Footer />
         </>
     )
 }
