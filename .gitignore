@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Scheduler.Web/scheduler.db-shm
+/Scheduler.Web/scheduler.db-wal

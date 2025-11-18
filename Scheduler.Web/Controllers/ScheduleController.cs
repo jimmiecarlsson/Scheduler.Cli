@@ -227,6 +227,7 @@ namespace Scheduler.Web.Controllers
         {
             try
             {
+
                 // Hitta rätt dag med sina block
                 var day = _db.ScheduleDays
                     .Include(d => d.Blocks)
@@ -239,6 +240,30 @@ namespace Scheduler.Web.Controllers
                 var block = day.Blocks.FirstOrDefault(b => b.Id == id);
                 if (block == null)
                     return NotFound(new { error = $"Block med ID {id} hittades inte." });
+
+                // Kontrollera om datumet har andrats
+                var newDate = DateOnly.Parse(blockDto.Date);
+
+                if (newDate != day.Date)
+                {
+                    // Hitta eller skapa ny dag
+                    var newDay = _db.ScheduleDays
+                        .Include(d => d.Blocks)
+                        .FirstOrDefault(d => d.Date == newDate);
+
+                    if (newDay == null)
+                    {
+                        newDay = new ScheduleDay(newDate);
+                        _db.ScheduleDays.Add(newDay);
+                    }
+
+                    // Flytta blocket till den nya dagen
+                    day.Blocks.Remove(block);
+                    newDay.Blocks.Add(block);
+
+                    // Anvand newDay som nuvarande dag i resten av metoden
+                    day = newDay;
+                }
 
                 // Uppdatera värden
                 var newRange = new TimeOfDayRange(
