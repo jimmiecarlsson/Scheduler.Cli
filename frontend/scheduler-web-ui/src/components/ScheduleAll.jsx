@@ -17,9 +17,26 @@ function ScheduleAll() {
     const [selectedId, setSelectedId] = useState(null);
 
     useEffect(() => {
-        console.log("getAll körs");
         getAll()
-            .then(data => setSchedule(data))
+            .then(data => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // nollställ tid eftersom dagen klocka tickar
+
+                const filtered = data.filter(day => {
+                    const d = new Date(day.date + "T00:00:00");
+                    return d >= today;
+                });
+
+                filtered.forEach(day => {
+                    day.blocks.sort((a, b) => {
+                        const t1 = a.range.start;
+                        const t2 = b.range.start;
+                        return t1.localeCompare(t2);
+                    });
+                });
+
+                setSchedule(filtered);
+            })
             .catch(err => setError(err.message));
     }, []);
 

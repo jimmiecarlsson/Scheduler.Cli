@@ -259,7 +259,7 @@ namespace Scheduler.Web.Controllers
 
                     // Flytta blocket till den nya dagen
                     day.Blocks.Remove(block);
-                    newDay.Blocks.Add(block);
+                    newDay.AddBlock(block);
 
                     // Anvand newDay som nuvarande dag i resten av metoden
                     day = newDay;
