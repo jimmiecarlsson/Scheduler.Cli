@@ -1,20 +1,19 @@
 ﻿import { getToday } from '../api/scheduleApi';
-import { useState } from 'react'
-import { useEffect } from 'react';
-import React from 'react'
-import Container from 'react-bootstrap/Container'
-import Row from 'react-bootstrap/Row'
-import Col from 'react-bootstrap/Col'
-import Alert from 'react-bootstrap/Alert'
-import ListGroup from 'react-bootstrap/ListGroup'
-import Card from 'react-bootstrap/Card'
+
+import { useState, useEffect, React } from 'react'
+
+import { Container, Row, Col, Alert, ListGroup, Card } from 'react-bootstrap'
 
 import maddeImg from '../assets/madde.jpg';
 import olleImg from '../assets/olle.jpg';
 import bobImg from '../assets/bob.jpg';
+import jonnaImg from '../assets/jonna.jpg';
+import martinImg from '../assets/martin.jpg';
 import liveImg from '../assets/live.jpg';
 
 const ScheduleToday = ({ onLoaded, showList = true }) => {
+
+
 
     const [schedule, setSchedule] = useState([]);
     const [error, setError] = useState([]);
@@ -36,14 +35,22 @@ const ScheduleToday = ({ onLoaded, showList = true }) => {
 
     if (!showList) return null;
 
+
+
     const presImages = {
         "Madde": maddeImg,
         "Olle": olleImg,
         "Bob": bobImg,
+        "Jonna": jonnaImg,
+        "Martin": martinImg
     };
+
+
+
 
     return (
         <>
+
             {typeof error === "string" && error.trim() !== "" && (
 
                 <Row>
@@ -56,8 +63,9 @@ const ScheduleToday = ({ onLoaded, showList = true }) => {
                 </Row>
 
             )}
-            <Row className="mt-2 d-flex justify-content-center">
-                <Col className="col-8">
+
+            <Row className="mt-5 d-flex justify-content-center">
+                <Col className="col-12">
                     <Card className="purple-rain">
                         {schedule.map((item) => (
                             <Card.Body key={item.id} className="purple-rain text-white mb-5">

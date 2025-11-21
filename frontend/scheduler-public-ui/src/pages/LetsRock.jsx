@@ -10,6 +10,8 @@ const LetsRock = () => {
                 ctaText="Next Coming up!"
                 ctaHref="/letsrock#rest"
             />
+            <div>
+            </div>
         </>
     );
 }

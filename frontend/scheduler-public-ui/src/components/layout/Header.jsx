@@ -9,12 +9,12 @@ const Header = () => {
     return (
         <header className="mb-auto">
             <Container>
-                <Navbar className="fixed-top purple-rain text-center">
+                <Navbar fixed="top" expand="lg" className="px-2  purple-menu text-center">
                     <Navbar.Brand href="/">
                         <h3 className="mb-0 text-white"><GiGuitarBassHead className="text-white fs-1" /> Radio Gaga</h3>
                     </Navbar.Brand>
-                    <Navbar.Toggle aria-controls="jc-navbar-nav" />
-                    <Navbar.Collapse id="jc-navbar-nav">
+                    <Navbar.Toggle aria-controls="jc-navbar-nav" className="bg-white" />
+                    <Navbar.Collapse id="jc-navbar-nav" className="collapse" >
                         <Nav className="nav-masthead">
                             <Nav.Link className="fw-bold py-1 px-0 text-white" aria-current="page" href="/">Home</Nav.Link>
                             <Nav.Link className="fw-bold py-1 px-0 text-white" href="/letsrock">Let's Rock!</Nav.Link>

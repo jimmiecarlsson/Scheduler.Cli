@@ -41,7 +41,7 @@ body {
 }
 
     .card img {
-        max-height: 220px;
+        max-height: 120px;
         object-fit: cover;
         width: 100%;
         border-radius: 0.25rem;
@@ -51,18 +51,23 @@ body {
 .cover-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content:flex-start;
     align-items: center;
-    min-height: 100vh;
     width: 100%;
     max-width: none;
     padding: 0rem;
+
     background-image: url("assets/pexels-yabee-1656066.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
+
+.vh-100 {
+    min-height: 50vh;
+}
+
 .fill {
     min-height: 100vh;
     width: 100%;
@@ -75,12 +80,12 @@ body {
     background-attachment: fixed;
 }
 
-.purple-rain {
+.purple-menu, .purple-rain {
     background-color: rgba(108, 17, 17, 0.3) !important;
 }
 
 .paddington {
-    padding: 5rem;
+    margin-top: 2rem;
 }
 
 .outline-light {
@@ -92,6 +97,7 @@ body {
         background-color: rgba(200, 17, 17, 0.5) !important;
         border: 2px solid #fff;
     }
+
 /*
  * Header
  */
@@ -121,13 +127,6 @@ body {
     -moz-user-select: none;
     user-select: none
 }
-
-@media (min-width: 768px) {
-    .bd-placeholder-img-lg {
-        font-size: 3.5rem
-    }
-}
-
 
 .bi {
     vertical-align: -.125em;
@@ -173,11 +172,12 @@ body {
 }
 
     .bd-mode-toggle .bi {
-        width: 1em;
-        height: 1em
+        width: 2em;
+        height: 2em;
     }
 
     .bd-mode-toggle .dropdown-menu .active .bi {
+        color: white !important;
         display: block !important
     }
 
@@ -203,26 +203,6 @@ footer {
     padding: 0.25rem 0.5rem;
     z-index: 1030;
 }
-
-/*.upcoming-wrapper {
-    background-color: #1a0b0b;
-    background-image: url("assets/pexels-yabee-1656066.jpg");
-    background-size: cover;
-    background-position: center;
-    min-height: 100vh;
-    padding-top: 5rem;
-    padding-bottom: 6rem;
-}
-
-
-    .upcoming-wrapper section {
-        background-color: rgba(108, 17, 17, 0.3);
-    }
-
-    .upcoming-wrapper .container {
-        background-color: rgba(108, 17, 17, 0.3);
-        border-radius: 8px;
-    }*/
 
 /*WaveForm*/
 
@@ -273,5 +253,20 @@ footer {
 
     to {
         height: 90%;
+    }
+}
+
+/*
+ * Mobil justeringar
+ */
+
+
+@media (max-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem
+    }
+
+    .purple-menu {
+        background-color: rgba(108, 17, 17, 0.8) !important;
     }
 }

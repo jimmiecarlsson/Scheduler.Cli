@@ -15,9 +15,11 @@ function App() {
 
     return (
         <>
-            <Header />
-                <Outlet />
-            <Footer />
+            <div className="cover-container vh-100">
+                <Header />
+                    <Outlet />
+                <Footer />
+            </div>
         </>
     )
 }

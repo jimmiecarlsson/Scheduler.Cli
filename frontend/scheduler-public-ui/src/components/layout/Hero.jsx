@@ -7,7 +7,7 @@ import Button from 'react-bootstrap/Button'
 
 const Hero = ({ title, subtitle, ctaText, ctaHref }) => {
     return (
-        <div className="cover-container">
+        
             <main className="purple-rain p-5">
                 {title && <h1 className="display-1">{title}</h1>}
                 {subtitle && <p className="lead fw-bold">{subtitle}</p>}
@@ -20,7 +20,7 @@ const Hero = ({ title, subtitle, ctaText, ctaHref }) => {
                 )}
                 <CgScrollV className="fs-1"/>
             </main>
-        </div>
+        
     )
 }
 

@@ -32,7 +32,7 @@ const Holder = ({ title, subtitle, ctaText, ctaHref }) => {
     return (
         <>  <ScheduleToday onLoaded={handleLoaded} showList={false} />
 
-            <div className="cover-container">
+            <div>
                 <main className="purple-rain p-5">
                     <WaveForm />
                     {title && <h1 className="display-1">{title}</h1>}
@@ -61,37 +61,7 @@ const Holder = ({ title, subtitle, ctaText, ctaHref }) => {
                     <CgScrollV className="fs-1 mt-0" />
                 </main>
             </div>
-            <div className="cover-container d-flex justify-content-center mt-0" id="rest">
-                <Row className="w-100 justify-content-center">
-                    <Col className="col-md-6 purple-rain">
-                        
-
-                        
-
-                        {nextBlock.length > 0 && (
-                            <>
-                                {nextBlock.map(block => (
-                                    <Card className="mt-5 p-5 bg-secondary text-white w-100" key={block.id}>
-                                        <h3 className="mb-4">Coming up next!</h3>
-                                        <h2>
-                                            {block.startTime} - {block.endTime} <strong>{block.title}</strong>
-                                        </h2>
-                                    </Card>
-                                ))}
-                            </>
-                        )}
-
-                        <p className="lead mt-3">
-                            <Button href="/letsrock#top" className="my-5 mx-2 px-5 btn-lg outline-light">
-                                Back to the Top
-                            </Button>
-                            <Button href="/upcoming" className="mx-2 my-5 px-5 btn-lg outline-light">
-                                More to come...
-                            </Button>
-                        </p>
-                    </Col>
-                </Row>
-            </div>
+            
         </>
 
 
