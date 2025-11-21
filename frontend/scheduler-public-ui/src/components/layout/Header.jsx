@@ -7,7 +7,7 @@ import { GiGuitarBassHead } from "react-icons/gi";
 
 const Header = () => {
     return (
-        <header className="mb-auto">
+        <header className="mb-5">
             <Container>
                 <Navbar fixed="top" expand="lg" className="px-2  purple-menu text-center">
                     <Navbar.Brand href="/">

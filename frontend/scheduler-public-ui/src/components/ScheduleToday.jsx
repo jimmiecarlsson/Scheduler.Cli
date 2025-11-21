@@ -64,8 +64,8 @@ const ScheduleToday = ({ onLoaded, showList = true }) => {
 
             )}
 
-            <Row className="mt-5 d-flex justify-content-center">
-                <Col className="col-12">
+            <Row className="mt-2 d-flex justify-content-center">
+                <Col className="col-md-12 purple-rain m-0">
                     <Card className="purple-rain">
                         {schedule.map((item) => (
                             <Card.Body key={item.id} className="purple-rain text-white mb-5">

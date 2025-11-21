@@ -18,9 +18,10 @@ const UpComing = () => {
                 ctaHref="/upcoming#rest"
             />
 
-            <div id="rest">
+            <div id="rest" className="hero mt-5 mb-boost">
                 <ScheduleToday />
             </div>
+            <div className=" mt-5">.</div>
         </>
     )
 }

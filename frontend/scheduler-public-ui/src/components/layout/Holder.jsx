@@ -32,7 +32,7 @@ const Holder = ({ title, subtitle, ctaText, ctaHref }) => {
     return (
         <>  <ScheduleToday onLoaded={handleLoaded} showList={false} />
 
-            <div>
+            <div className="hero">
                 <main className="purple-rain p-5">
                     <WaveForm />
                     {title && <h1 className="display-1">{title}</h1>}
@@ -61,7 +61,6 @@ const Holder = ({ title, subtitle, ctaText, ctaHref }) => {
                     <CgScrollV className="fs-1 mt-0" />
                 </main>
             </div>
-            
         </>
 
 

@@ -15,11 +15,11 @@ function App() {
 
     return (
         <>
-            <div className="cover-container vh-100">
+           
                 <Header />
                     <Outlet />
                 <Footer />
-            </div>
+            
         </>
     )
 }
