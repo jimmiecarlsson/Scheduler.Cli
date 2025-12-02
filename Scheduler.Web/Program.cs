@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Scheduler.Application;
@@ -16,6 +18,10 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<SchedulerDbContext>(options =>
 options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<SchedulerDbContext>()
+    .AddDefaultTokenProviders();
+
 
 builder.Services.AddScoped<SevenDaysService>();
 
@@ -30,6 +36,7 @@ builder.Services.AddCors(options =>
     }
 );
 
+builder.Services.AddSingleton<IEmailSender<IdentityUser>, NoOpEmailSender>();
 
 
 var app = builder.Build();
@@ -41,8 +48,23 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    await IdentitySeeder.SeedAsync(roleManager, userManager);
+}
+
+app.MapIdentityApi<IdentityUser>();
+
+
+
 app.UseHttpsRedirection();
 app.UseCors(corsPolicy);
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 // Add endpoints in /Controllers/

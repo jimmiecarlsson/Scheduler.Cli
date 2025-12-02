@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Scheduler.Domain.Entities;
+
 
 namespace Scheduler.Web.Data
 {
-    public class SchedulerDbContext : DbContext
+    public class SchedulerDbContext : IdentityDbContext<IdentityUser>
     {
         public SchedulerDbContext(DbContextOptions<SchedulerDbContext> options)
             : base(options)

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Application;
@@ -18,19 +20,24 @@ namespace Scheduler.Web.Controllers
     {
         private readonly SchedulerDbContext _db;
 
-        public ScheduleController(SchedulerDbContext db)
-        {
-            _db = db;
-        }
-
-
-
-        // 🔹 Fält (private property) – lagrar en referens till SevenDaysService
+        // Fält (private property) – lagrar en referens till SevenDaysService
         private readonly SevenDaysService _SevenDaysService;
 
         // Räknare för att ge unika IDs till presenters och guests
         private static int _nextPresenterId = 1;
         private static int _nextGuestId = 1;
+
+        private readonly SignInManager<IdentityUser> _signInManager;
+
+        // Konstruktorn
+        public ScheduleController(SchedulerDbContext db, SignInManager<IdentityUser> signInManager)
+        {
+
+            _db = db;
+            _signInManager = signInManager;
+        }
+
+
 
 
         // Endpoint för GET /api/schedule/all
@@ -162,6 +169,7 @@ namespace Scheduler.Web.Controllers
         }
 
         // Endpoint för POST /api/schedule/block
+        [Authorize(Roles = "Admin")]
         [HttpPost("block")]
         public IActionResult CreateBlock([FromBody] ScheduleBlockDto blockDto)
         {
@@ -222,6 +230,7 @@ namespace Scheduler.Web.Controllers
         }
 
         // Endpoint för PUT /api/schedule/block/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPut("block/{id}")]
         public IActionResult UpdateBlock(int id, [FromBody] ScheduleBlockDto blockDto)
         {
@@ -301,6 +310,7 @@ namespace Scheduler.Web.Controllers
 
 
         // Endpoint för POST /api/schedule/block/{id}/presenter
+        [Authorize(Roles = "Admin")]
         [HttpPost("block/{id}/presenter")]
         public IActionResult AddPresenter(int id, [FromBody] AddPresenterDto presenterDto)
         {
@@ -348,6 +358,7 @@ namespace Scheduler.Web.Controllers
 
 
         // Endpoint för POST /api/schedule/block/{id}/guests
+        [Authorize(Roles = "Admin")]
         [HttpPost("block/{id}/guest")]
         public IActionResult AddGuests(int id, [FromBody] AddGuestsDto guestsDto)
         {
@@ -400,6 +411,7 @@ namespace Scheduler.Web.Controllers
         }
 
         // Endpoint för DELETE /api/schedule/block/{id}
+        [Authorize(Roles = "Admin")]
         [HttpDelete("block/{id}")]
         public IActionResult DeleteBlock(int id)
         {
@@ -421,25 +433,6 @@ namespace Scheduler.Web.Controllers
 
                 return Ok(new { message = $"Block {id} har tagits bort." });
 
-                // gamla med bugg
-                //var day = _db.ScheduleDays
-                //    .Include(d => d.Blocks)
-                //    .FirstOrDefault(d => d.Id == id);
-
-                //if(day == null) return NotFound(new { error = $"Block Id {id} hittades inte.(1)" });
-
-                //var block = day.Blocks
-                //    .FirstOrDefault(b => b.Id == id);
-
-                //if (block == null) return NotFound(new { error = $"Block id {id} hittades inte.(2)" });
-
-                //day.RemoveBlock(block);
-
-                //_db.SaveChanges();
-
-                //return Ok(new { message = $"Block {id} har tagit bort."});
-
-
             }
             catch (Exception ex)
             {
@@ -448,7 +441,7 @@ namespace Scheduler.Web.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("block/{id}/presenter/{presenterId}")]
         public IActionResult DeletePresenter(int id, int presenterId)
         {
@@ -475,7 +468,7 @@ namespace Scheduler.Web.Controllers
             }
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("block/{id}/guest/{guestId}")]
         public IActionResult DeleteGuest(int id, int guestId)
         {
@@ -504,6 +497,15 @@ namespace Scheduler.Web.Controllers
                 return BadRequest(new { error = ex.Message});
             }
         }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok();
+        }
+
 
     }
 }
