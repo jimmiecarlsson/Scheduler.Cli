@@ -18,9 +18,23 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<SchedulerDbContext>(options =>
 options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDataProtection();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
+    options.DefaultChallengeScheme = IdentityConstants.BearerScheme;
+})
+.AddBearerToken(IdentityConstants.BearerScheme);
+
+
+// Identity med cookies
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<SchedulerDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddDataProtection();
+
 
 
 builder.Services.AddScoped<SevenDaysService>();
@@ -32,7 +46,9 @@ builder.Services.AddCors(options =>
         options.AddPolicy(corsPolicy, policy => 
         policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials()
+            );
     }
 );
 
@@ -55,12 +71,14 @@ using (var scope = app.Services.CreateScope())
     await IdentitySeeder.SeedAsync(roleManager, userManager);
 }
 
-app.MapIdentityApi<IdentityUser>();
 
 
 
 app.UseHttpsRedirection();
 app.UseCors(corsPolicy);
+
+
+app.MapIdentityApi<IdentityUser>();
 
 app.UseAuthentication();
 app.UseAuthorization();

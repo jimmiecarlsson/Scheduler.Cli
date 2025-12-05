@@ -24,3 +24,11 @@ export async function updateBlock(id, dto) {
     const res = await http.put(`/api/schedule/block/${id}`, dto);
     return res.data;
 }
+
+export async function login(email, password) {
+    return http.post("/login", { email, password });
+}
+
+export async function logout() {
+    return http.post("/logout");
+}
