@@ -30,5 +30,5 @@ export async function login(email, password) {
 }
 
 export async function logout() {
-    return http.post("/logout");
+    return http.post("/api/Schedule/logout");
 }

@@ -1,69 +1,80 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
-using Scheduler.Application;
 using Scheduler.Web.Data;
+using Scheduler.Application;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Services
-builder.Services.AddOpenApi();
-builder.Services.AddControllers()
-    .AddJsonOptions(opt =>
-    {
-        opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles; //Added to prohibit circular cycles
-    });
-
+// Database
 builder.Services.AddDbContext<SchedulerDbContext>(options =>
-options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDataProtection();
-
-builder.Services.AddAuthentication(options =>
+// Identity (utan UI, utan redirects — rätt för API)
+builder.Services.AddIdentityCore<IdentityUser>(options =>
 {
-    options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
-    options.DefaultChallengeScheme = IdentityConstants.BearerScheme;
+    options.SignIn.RequireConfirmedAccount = false;
 })
-.AddBearerToken(IdentityConstants.BearerScheme);
-
-
-// Identity med cookies
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<SchedulerDbContext>()
+    .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddDataProtection();
 
-
-
-builder.Services.AddScoped<SevenDaysService>();
-
-//CORS
-var corsPolicy = "FrontendPolicy";
-builder.Services.AddCors(options =>
+// Cookie authentication (API-style: returnera 401, inte redirect)
+builder.Services.AddAuthentication(IdentityConstants.BearerScheme)
+    .AddCookie(IdentityConstants.BearerScheme, options =>
     {
-        options.AddPolicy(corsPolicy, policy => 
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            );
-    }
-);
+        options.LoginPath = string.Empty; // inga redirect-vägar
+        options.AccessDeniedPath = string.Empty;
 
+        options.Cookie.SameSite = SameSiteMode.None;   // <- KRITISK
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+        // Ingen redirect för API
+        options.Events.OnRedirectToLogin = ctx =>
+        {
+            ctx.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        };
+
+        options.Events.OnRedirectToAccessDenied = ctx =>
+        {
+            ctx.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddControllers();
+
+// CORS
+var corsPolicy = "Frontend";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(corsPolicy, policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
+});
+
+// Identity API endpoints (ex: /login, /register, /logout)
+builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IEmailSender<IdentityUser>, NoOpEmailSender>();
-
 
 var app = builder.Build();
 
-// Dev
+// Dev tools
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
 
+// Seed roles/users
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -71,21 +82,16 @@ using (var scope = app.Services.CreateScope())
     await IdentitySeeder.SeedAsync(roleManager, userManager);
 }
 
-
-
-
 app.UseHttpsRedirection();
 app.UseCors(corsPolicy);
-
-
-app.MapIdentityApi<IdentityUser>();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Identity API (login, logout, manage, reset password, etc.)
+app.MapIdentityApi<IdentityUser>();
+
+// Controllers
 app.MapControllers();
 
-// Add endpoints in /Controllers/
-
 app.Run();
-
