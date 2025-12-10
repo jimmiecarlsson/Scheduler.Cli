@@ -5,7 +5,7 @@ import { FaRadio } from "react-icons/fa6";
 
 import { logout } from "../api/scheduleApi";
 
-const Menu = ({ isLoggedIn, onLogout }) => {
+const Menu = ({ isLoggedIn, user, onLogout }) => {
 
 
 
@@ -19,10 +19,18 @@ const Menu = ({ isLoggedIn, onLogout }) => {
 
                     {isLoggedIn && (
                         <Nav className="me-auto">
-                            <Nav.Link as={NavLink} to="/">Hem</Nav.Link>
-                            <Nav.Link as={NavLink} to="/today">Idag</Nav.Link>
-                            <Nav.Link as={NavLink} to="/all">Alla</Nav.Link>
-                            <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
+                            {(user?.role === "Contributor" || user?.role === "Admin") && (
+                                <Nav.Link as={NavLink} to="/">Hem</Nav.Link>
+                            )}
+                            {(user?.role === "Contributor" || user?.role === "Admin") && (
+                                <Nav.Link as={NavLink} to="/today">Idag</Nav.Link>
+                            )}
+                            {user?.role === "Admin" && (
+                                <Nav.Link as={NavLink} to="/all">Alla</Nav.Link>
+                            )}
+                            {user?.role === "Admin" && (
+                                <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
+                            )}
                         </Nav>
                     )}
 
