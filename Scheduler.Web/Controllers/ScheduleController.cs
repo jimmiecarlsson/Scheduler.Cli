@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -410,6 +411,107 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
+        // POST /api/schedule/users/{id}/make-contributor
+        [Authorize(Roles = "Admin")]
+        [HttpPost("users/{id}/make-contributor")]
+        public async Task<IActionResult> MakeContributor(
+            string id,
+            [FromServices] UserManager<IdentityUser> userManager)
+        {
+            // Hämta användaren
+            var user = await userManager.FindByIdAsync(id);
+            if (user == null)
+                return NotFound(new { error = "User not found" });
+
+            // Kolla om Contributor redan finns
+            var existing = await _db.Contributors
+                .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
+
+            if (existing != null)
+                return Conflict(new { error = "Contributor profile already exists for this user" });
+
+            // Skapa Contributor-profil
+            var contributor = new Contributor
+            {
+                IdentityUserId = user.Id,
+                Address = "",
+                Phone = "",
+                HourlyRate = 750,
+                EventAddon = 300
+            };
+
+            _db.Contributors.Add(contributor);
+            await _db.SaveChangesAsync();
+
+            // Ge rollen Contributor
+            await userManager.AddToRoleAsync(user, "Contributor");
+
+            return Ok(new
+            {
+                message = "User promoted to Contributor",
+                userId = user.Id,
+                contributorId = contributor.Id
+            });
+        }
+
+        // GET /api/schedule/users
+        [Authorize(Roles = "Admin")]
+        [HttpGet("users")]
+        public async Task<IActionResult> GetUsers(
+            [FromServices] UserManager<IdentityUser> userManager,
+            [FromServices] RoleManager<IdentityRole> roleManager)
+        {
+            // Hämta alla användare
+            var users = userManager.Users.ToList();
+
+            var result = new List<object>();
+
+            foreach (var user in users)
+            {
+                var roles = await userManager.GetRolesAsync(user);
+
+                result.Add(new
+                {
+                    id = user.Id,
+                    email = user.Email,
+                    roles = roles
+                });
+            }
+
+            return Ok(result);
+        }
+
+        // Endpoint för GET /api/schedule/contributors/me
+        [Authorize]
+        [HttpGet("contributors/me")]
+        public async Task<IActionResult> GetMyContributorProfile( [FromServices] UserManager<IdentityUser> userManager)
+        {
+            
+            var userId = userManager.GetUserId(User);
+            if (userId == null)
+                return Unauthorized(new { error = "Not logged in" });
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { error = "IdentityUser not found" });
+
+            var contributor = _db.Contributors.FirstOrDefault(c => c.IdentityUserId == userId);
+            if (contributor == null)
+                return NotFound(new { error = "Contributor profile not found" });
+
+            var dto = new ContributorProfileDto
+            {
+                Id = contributor.Id,
+                Email = user.Email,
+                Address = contributor.Address,
+                Phone = contributor.Phone,
+                HourlyRate = contributor.HourlyRate,
+                EventAddon = contributor.EventAddon
+            };
+
+            return Ok(dto);
+        }
+
         // Endpoint för DELETE /api/schedule/block/{id}
         [Authorize(Roles = "Admin")]
         [HttpDelete("block/{id}")]
@@ -502,9 +604,10 @@ namespace Scheduler.Web.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
-            return Ok();
+            await HttpContext.SignOutAsync(IdentityConstants.BearerScheme);
+            return Ok(new { message = "Logged out" });
         }
+
 
 
     }

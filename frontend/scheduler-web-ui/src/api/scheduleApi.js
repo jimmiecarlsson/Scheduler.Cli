@@ -32,3 +32,8 @@ export async function login(email, password) {
 export async function logout() {
     return http.post("/api/Schedule/logout");
 }
+
+export async function getMyContributor() {
+    const res = await http.get("/api/schedule/contributors/me");
+    return res.data;
+}

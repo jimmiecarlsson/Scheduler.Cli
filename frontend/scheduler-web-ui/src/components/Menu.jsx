@@ -2,6 +2,7 @@
 import { NavLink } from "react-router-dom";
 import { Navbar, Nav, Container } from "react-bootstrap";
 import { FaRadio } from "react-icons/fa6";
+import { FaUserCircle } from "react-icons/fa";
 
 import { logout } from "../api/scheduleApi";
 
@@ -32,6 +33,24 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
                                 <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
                             )}
                         </Nav>
+                    )}
+
+                    {isLoggedIn && (
+                        <Nav.Link
+                            as={NavLink}
+                            to="/profile"
+                            className="ms-3 d-flex align-items-center"
+                        >
+                            <FaUserCircle size={22} />
+                        </Nav.Link>
+                    )}
+
+                    {isLoggedIn && user && (
+                        <div className="ms-3">
+                            <small>{user?.email || "Admin" }</small>
+                            <br />
+                            <span className="text-muted">{user?.role}</span>
+                        </div>
                     )}
 
                     {isLoggedIn && (
