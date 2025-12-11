@@ -17,6 +17,9 @@ namespace Scheduler.Web.Data
         public DbSet<ScheduleBlock> ScheduleBlocks { get; set; }
         public DbSet<Presenter> Presenters { get; set; }
         public DbSet<Guest> Guests { get; set; }
+        public DbSet<Contributor> Contributors { get; set; }
+        public DbSet<PaymentRecord> PaymentRecords { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
