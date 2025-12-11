@@ -11,6 +11,7 @@ import Today from "./pages/Today";
 import EditBlock from './components/EditBlock';
 import ProtectedRoute from "./components/ProtectedRoute";
 import ContributorProfile from "./pages/ContributorProfile";
+import AdminUsers from "./pages/AdminUsers";
 import Login from "./pages/Login";
 
 
@@ -67,7 +68,17 @@ function App() {
                 <Container className="d-flex justify-content-center align-items-center mt-5">
                     <Routes>
 
-                    <Route path="/login" element={<Login onLogin={ handleLogin } />} />
+                    <Route path="/login" element={<Login onLogin={handleLogin} />} />
+
+                        <Route path="/admin" element={
+                            <ProtectedRoute
+                                isLoggedIn={isLoggedIn}
+                                userRole={user?.role}
+                                allowedRoles={["Admin"]}
+                            >
+                                <AdminUsers />
+                            </ProtectedRoute>
+                        } />
                         
                         <Route path="/" element={
                             <ProtectedRoute

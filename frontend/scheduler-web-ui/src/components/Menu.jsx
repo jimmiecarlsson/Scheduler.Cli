@@ -32,6 +32,10 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
                             {user?.role === "Admin" && (
                                 <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
                             )}
+                            {user?.role === "Admin" && (
+                                <Nav.Link as={NavLink} to="/admin">Contributors</Nav.Link>
+                            )}
+
                         </Nav>
                     )}
 

@@ -423,6 +423,13 @@ namespace Scheduler.Web.Controllers
             if (user == null)
                 return NotFound(new { error = "User not found" });
 
+
+            // Stoppa om användaren är Admin
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+                return BadRequest(new { error = "Cannot modify Admin roles" });
+
+
             // Kolla om Contributor redan finns
             var existing = await _db.Contributors
                 .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
@@ -469,6 +476,9 @@ namespace Scheduler.Web.Controllers
             foreach (var user in users)
             {
                 var roles = await userManager.GetRolesAsync(user);
+
+                if (roles.Contains("Admin"))
+                    continue;
 
                 result.Add(new
                 {

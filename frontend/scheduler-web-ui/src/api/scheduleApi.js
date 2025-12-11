@@ -37,3 +37,11 @@ export async function getMyContributor() {
     const res = await http.get("/api/schedule/contributors/me");
     return res.data;
 }
+
+export async function getUsers() {
+    return http.get("/api/schedule/users").then(r => r.data);
+}
+
+export async function makeContributor(userId) {
+    return http.post(`/api/schedule/users/${userId}/make-contributor`);
+}
