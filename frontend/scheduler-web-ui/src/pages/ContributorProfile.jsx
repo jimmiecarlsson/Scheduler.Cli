@@ -1,18 +1,103 @@
-﻿import React from "react";
+﻿import React, { useState } from "react";
+import { updateMyContributorProfile } from "../api/scheduleApi";
 
-const ContributorProfile = ({ user }) => {
+const ContributorProfile = ({ user, onProfileUpdated }) => {
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [form, setForm] = useState({
+        address: user?.address ?? "",
+        phone: user?.phone ?? ""
+    });
+
+    if (!user) return null;
+
+    function startEdit() {
+        setForm({
+            address: user.address ?? "",
+            phone: user.phone ?? ""
+        });
+        setIsEditing(true);
+    }
+
+    function cancelEdit() {
+        setForm({
+            address: user.address ?? "",
+            phone: user.phone ?? ""
+        });
+        setIsEditing(false);
+    }
+
+
+
+
+
+
     return (
-        <div className="container mt-4">
+        <div className="container mt-4" style={{ maxWidth: 600 }}>
             <h3>Min profil</h3>
 
-            <p><strong>Email:</strong> {user?.email}</p>
-            <p><strong>Adress:</strong> {user?.address}</p>
-            <p><strong>Telefon:</strong> {user?.phone}</p>
+            <p><strong>Email:</strong> {user.email}</p>
 
-            {user?.role === "Contributor" && (
+            {!isEditing ? (
                 <>
-                    <p><strong>Timpris:</strong> {user?.hourlyRate} kr</p>
-                    <p><strong>Eventtillägg:</strong> {user?.eventAddon} kr</p>
+                    <p><strong>Adress:</strong> {user.address || "-"}</p>
+                    <p><strong>Telefon:</strong> {user.phone || "-"}</p>
+
+                    <p><strong>Timpris:</strong> {user.hourlyRate} kr</p>
+                    <p><strong>Eventtillägg:</strong> {user.eventAddon} kr</p>
+
+                    <button
+                        className="btn btn-outline-primary mt-2"
+                        onClick={startEdit}
+                    >
+                        Redigera profil
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div className="mb-2">
+                        <label className="form-label">Adress</label>
+                        <input
+                            className="form-control"
+                            value={form.address}
+                            onChange={e =>
+                                setForm({ ...form, address: e.target.value })
+                            }
+                        />
+                    </div>
+
+                    <div className="mb-3">
+                        <label className="form-label">Telefon</label>
+                        <input
+                            className="form-control"
+                            value={form.phone}
+                            onChange={e =>
+                                setForm({ ...form, phone: e.target.value })
+                            }
+                        />
+                    </div>
+
+                    <div className="d-flex gap-2">
+                            <button className="btn btn-success"
+                                onClick={async () => {
+                                    const updated = await updateMyContributorProfile({
+                                        address: form.address,
+                                        phone: form.phone
+                                    });
+
+                                    onProfileUpdated(updated);
+                                    setIsEditing(false);
+                                }}
+                            >
+                                Spara
+                            </button>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={cancelEdit}
+                        >
+                            Avbryt
+                        </button>
+                    </div>
                 </>
             )}
         </div>

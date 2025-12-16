@@ -411,12 +411,13 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
+
+
         // POST /api/schedule/users/{id}/make-contributor
         [Authorize(Roles = "Admin")]
         [HttpPost("users/{id}/make-contributor")]
         public async Task<IActionResult> MakeContributor(
-            string id,
-            [FromServices] UserManager<IdentityUser> userManager)
+            string id, [FromServices] UserManager<IdentityUser> userManager)
         {
             // Hämta användaren
             var user = await userManager.FindByIdAsync(id);
@@ -461,34 +462,133 @@ namespace Scheduler.Web.Controllers
             });
         }
 
+        // Endpoint för PUT /users/{id}/rates-contributor
+        [Authorize(Roles = "Admin")]
+        [HttpPut("users/{userId}/rates-contributor")]
+        public async Task<IActionResult> UpdateContributorRates(string userId,
+            [FromBody] UpdateContributorRatesDto dto,
+            [FromServices] UserManager<IdentityUser> userManager)
+        {
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { error = "IdentityUser not found" });
+
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+                return BadRequest(new { error = "Cannot update rates for Admin users" });
+
+            var contributor = await _db.Contributors
+                .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+
+            if (contributor == null)
+                return NotFound(new { error = "Contributor profile not found" });
+
+            contributor.HourlyRate = dto.HourlyRate;
+            contributor.EventAddon = dto.EventAddon;
+
+            Console.WriteLine(dto.HourlyRate);
+            Console.WriteLine(dto.EventAddon);
+
+            await _db.SaveChangesAsync();
+
+            var result = new ContributorProfileDto
+            {
+                Id = contributor.Id,
+                Email = user.Email!,
+                Address = contributor.Address,
+                Phone = contributor.Phone,
+                HourlyRate = contributor.HourlyRate,
+                EventAddon = contributor.EventAddon
+            };
+
+            return Ok(result);
+
+        }
+
         // GET /api/schedule/users
         [Authorize(Roles = "Admin")]
         [HttpGet("users")]
-        public async Task<IActionResult> GetUsers(
-            [FromServices] UserManager<IdentityUser> userManager,
-            [FromServices] RoleManager<IdentityRole> roleManager)
+        public async Task<IActionResult> GetUsers( [FromServices] UserManager<IdentityUser> userManager)
         {
-            // Hämta alla användare
             var users = userManager.Users.ToList();
-
             var result = new List<object>();
 
             foreach (var user in users)
             {
                 var roles = await userManager.GetRolesAsync(user);
 
+                // hoppa över Admin
                 if (roles.Contains("Admin"))
                     continue;
+
+                decimal? hourlyRate = null;
+                decimal? eventAddon = null;
+
+                if (roles.Contains("Contributor"))
+                {
+                    var contributor = await _db.Contributors
+                        .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
+
+                    if (contributor != null)
+                    {
+                        hourlyRate = contributor.HourlyRate;
+                        eventAddon = contributor.EventAddon;
+                    }
+                }
 
                 result.Add(new
                 {
                     id = user.Id,
                     email = user.Email,
-                    roles = roles
+                    roles = roles,
+                    hourlyRate,
+                    eventAddon
                 });
             }
 
             return Ok(result);
+        }
+
+        // GET /api/schedule/users/{id}/payments
+        [Authorize(Roles = "Admin")]
+        [HttpGet("users/{userId}/payments")]
+        public async Task<IActionResult> GetPayments(
+            string userId, [FromServices] UserManager<IdentityUser> userManager)
+        {
+            // Hämta användaren
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { error = "User not found" });
+
+
+            // Stoppa om användaren är Admin
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+                return BadRequest(new { error = "Cannot modify Admin roles" });
+
+            var contributor = await _db.Contributors
+                .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
+
+            if (contributor == null)
+                return NotFound(new { error = "Contributor profile not found" });
+
+            var payments = await _db.PaymentRecords
+                .Where(p => p.ContributorId == contributor.Id)
+                .OrderByDescending(p => p.Month)
+                .Select(p => new PaymentDto
+                {
+                    Id = p.Id,
+                    Month = p.Month.ToString("yyyy-MM"),
+                    Hours = p.Hours,
+                    Events = p.Events,
+                    TotalAmount = p.TotalAmount,
+                    VatAmount = p.VatAmount
+                })
+                .ToListAsync();
+
+            return Ok(payments);
+
         }
 
         // Endpoint för GET /api/schedule/contributors/me
@@ -521,6 +621,83 @@ namespace Scheduler.Web.Controllers
 
             return Ok(dto);
         }
+
+        // Endpoint för PUT /api/schedule/contributors/me
+        [Authorize( Roles="Contributor" )]
+        [HttpPut("contributors/me")]
+        public async Task<IActionResult> UpdateMyContributorProfile(
+            [FromBody] UpdateContributorProfileDto dto,
+            [FromServices] UserManager<IdentityUser> userManager)
+        {
+
+                var userId = userManager.GetUserId(User);
+                if (userId == null)
+                    return Unauthorized(new { error = "Not logged in" });
+
+                var user = await userManager.FindByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { error = "IdentityUser not found" });
+
+                var contributor = await _db.Contributors
+                    .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+
+                if (contributor == null)
+                    return NotFound(new { error = "Contributor profile not found" });
+
+                contributor.Address = dto.Address ?? "";
+                contributor.Phone = dto.Phone ?? "";
+
+                await _db.SaveChangesAsync();
+
+                var result = new ContributorProfileDto
+                {
+                    Id = contributor.Id,
+                    Email = user.Email!,
+                    Address = contributor.Address,
+                    Phone = contributor.Phone,
+                    HourlyRate = contributor.HourlyRate,
+                    EventAddon = contributor.EventAddon
+                };
+
+            return Ok(result);
+            
+        }
+
+
+        // Endpoint för GET /api/schedule/contributors/me/payments
+        [Authorize(Roles = "Contributor")]
+        [HttpGet("contributors/me/payments")]
+        public async Task<IActionResult> GetMyPayments([FromServices] UserManager<IdentityUser> userManager)
+        {
+
+            var userId = userManager.GetUserId(User);
+            if (userId == null)
+                return Unauthorized(new { error = "Not logged in" });
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { error = "IdentityUser not found" });
+
+            var contributor = _db.Contributors
+                .Include(c => c.Payments)
+                .FirstOrDefault(c => c.IdentityUserId == userId);
+            
+            
+            if (contributor == null)
+                return NotFound(new { error = "Contributor profile not found" });
+
+            var result = contributor.Payments.Select(p => new PaymentDto
+            {
+                Month = p.Month.ToString("yyyy-MM"),
+                Hours = p.Hours,
+                Events = p.Events,
+                TotalAmount = p.TotalAmount,
+                VatAmount = p.VatAmount
+            });
+
+            return Ok(result);
+        }
+
 
         // Endpoint för DELETE /api/schedule/block/{id}
         [Authorize(Roles = "Admin")]

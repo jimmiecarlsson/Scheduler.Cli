@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { getMyContributor } from './api/scheduleApi';
+import { getMyContributor, getUsers } from './api/scheduleApi';
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 
 import Container from 'react-bootstrap/Container';
@@ -12,6 +12,7 @@ import EditBlock from './components/EditBlock';
 import ProtectedRoute from "./components/ProtectedRoute";
 import ContributorProfile from "./pages/ContributorProfile";
 import AdminUsers from "./pages/AdminUsers";
+import AdminUserPayments from "./pages/AdminUserPayments";
 import Login from "./pages/Login";
 
 
@@ -21,44 +22,55 @@ import NewBlock from './pages/NewBlock';
 function App() {
 
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState( { role: null });
 
     console.log("USER:", user);
 
 
     const navigate = useNavigate();
 
-    async function handleLogin() {
-        try {
-            const profile = await getMyContributor();
 
-            setUser({
-                role: "Contributor",   // Vi sätter detta baserat på profilen
-                ...profile
-            });
+    useEffect(() => {
+        if (!isLoggedIn) return;
 
-            setIsLoggedIn(true);
-            navigate("/");
+        async function initUser() {
+            // 1. Försök Admin
+            try {
+                await getUsers();
+                setUser({ role: "Admin" });
+                return;
+            } catch { }
 
-        } catch (err) {
-            // Om /me inte hittas (user är Admin eller vanlig user)
-            // Då sätter vi bara isLoggedIn = true
-            setIsLoggedIn(true);
+            // 2. Försök Contributor
+            try {
+                const profile = await getMyContributor();
+                setUser({ role: "Contributor", ...profile });
+                return;
+            } catch { }
 
-            // För att undvika krasch pga att user är null
-            setUser({
-                role: "Admin"   // Eller null om du vill
-            });
-
-            navigate("/");
+            // 3. Inloggad utan roll
+            setUser({ role: null });
         }
+
+        initUser();
+    }, [isLoggedIn]);
+
+
+    async function handleLogin() {
+        setIsLoggedIn(true);
+        setUser( { role: null } );   // Viktigt: reset
+
+        navigate("/");
     }
 
     function handleLogout() {
         localStorage.removeItem("token");
         setIsLoggedIn(false);
-        setUser(null);
+        setUser( { role: null } );
     }
+
+    
+
 
     return (
         <>
@@ -138,7 +150,24 @@ function App() {
                                 userRole={user?.role}
                                 allowedRoles={["Contributor", "Admin"]}
                             >
-                                <ContributorProfile user={ user } />
+                                <ContributorProfile
+                                    user={user}
+                                    onProfileUpdated={(updatedProfile) =>
+                                        setUser(prev => ({ ...prev, ...updatedProfile }))
+                                    }
+                                />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/users/:id/payments"
+                        element={
+                            <ProtectedRoute
+                                isLoggedIn={isLoggedIn}
+                                userRole={user?.role}
+                                allowedRoles={["Admin"]}
+                            >
+                                <AdminUserPayments />
                             </ProtectedRoute>
                         }
                     />

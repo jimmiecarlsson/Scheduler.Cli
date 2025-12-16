@@ -20,24 +20,19 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
 
                     {isLoggedIn && (
                         <Nav className="me-auto">
-                            {(user?.role === "Contributor" || user?.role === "Admin") && (
-                                <Nav.Link as={NavLink} to="/">Hem</Nav.Link>
-                            )}
-                            {(user?.role === "Contributor" || user?.role === "Admin") && (
-                                <Nav.Link as={NavLink} to="/today">Idag</Nav.Link>
-                            )}
-                            {user?.role === "Admin" && (
-                                <Nav.Link as={NavLink} to="/all">Alla</Nav.Link>
-                            )}
-                            {user?.role === "Admin" && (
-                                <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
-                            )}
-                            {user?.role === "Admin" && (
-                                <Nav.Link as={NavLink} to="/admin">Contributors</Nav.Link>
-                            )}
+                            <Nav.Link as={NavLink} to="/">Hem</Nav.Link>
+                            <Nav.Link as={NavLink} to="/today">Idag</Nav.Link>
 
+                            {user?.role === "Admin" && (
+                                <>
+                                    <Nav.Link as={NavLink} to="/all">Alla</Nav.Link>
+                                    <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
+                                    <Nav.Link as={NavLink} to="/admin">Contributors</Nav.Link>
+                                </>
+                            )}
                         </Nav>
                     )}
+
 
                     {isLoggedIn && (
                         <Nav.Link
@@ -49,7 +44,7 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
                         </Nav.Link>
                     )}
 
-                    {isLoggedIn && user && (
+                    {isLoggedIn && (
                         <div className="ms-3">
                             <small>{user?.email || "Admin" }</small>
                             <br />
