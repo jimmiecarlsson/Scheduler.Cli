@@ -27,20 +27,25 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
                                 <>
                                     <Nav.Link as={NavLink} to="/all">Alla</Nav.Link>
                                     <Nav.Link as={NavLink} to="/newblock">+</Nav.Link>
-                                    <Nav.Link as={NavLink} to="/admin">Contributors</Nav.Link>
+                                    <Nav.Link as={NavLink} to="/admin">Frilans</Nav.Link>
                                 </>
+                            )}
+                            {user?.role === "Contributor" && (
+                                <Nav.Link as={NavLink} to="/mina-sidor">
+                                    Mina sidor
+                                </Nav.Link>
                             )}
                         </Nav>
                     )}
 
 
-                    {isLoggedIn && (
+                    {user?.role === "Contributor" && (
                         <Nav.Link
                             as={NavLink}
-                            to="/profile"
+                            to="/mina-sidor"
                             className="ms-3 d-flex align-items-center"
                         >
-                            <FaUserCircle size={22} />
+                            <FaUserCircle size={30} />
                         </Nav.Link>
                     )}
 

@@ -10,7 +10,11 @@ import All from "./pages/All";
 import Today from "./pages/Today";
 import EditBlock from './components/EditBlock';
 import ProtectedRoute from "./components/ProtectedRoute";
+
 import ContributorProfile from "./pages/ContributorProfile";
+import ContributorPayments from "./pages/ContributorPayments";
+import MyPage from "./pages/MyPage";
+
 import AdminUsers from "./pages/AdminUsers";
 import AdminUserPayments from "./pages/AdminUserPayments";
 import Login from "./pages/Login";
@@ -171,6 +175,31 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="/payments"
+                        element={
+                            <ProtectedRoute
+                                isLoggedIn={isLoggedIn}
+                                userRole={user?.role}
+                                allowedRoles={["Contributor"]}
+                            >
+                                <ContributorPayments />   
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/mina-sidor"
+                        element={
+                            <ProtectedRoute
+                                isLoggedIn={isLoggedIn}
+                                userRole={user?.role}
+                                allowedRoles={["Contributor"]}
+                            >
+                                <MyPage user={user} />
+                            </ProtectedRoute>
+                        }
+                    />
+
 
                     </Routes>
                 </Container>

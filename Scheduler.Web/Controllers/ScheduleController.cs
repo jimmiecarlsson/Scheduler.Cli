@@ -9,6 +9,7 @@ using Scheduler.Domain.Entities;
 using Scheduler.Domain.ValueObjects;
 using Scheduler.Web.Data;
 using Scheduler.Web.Dtos;
+using System.Globalization;
 
 namespace Scheduler.Web.Controllers
 {
@@ -19,6 +20,8 @@ namespace Scheduler.Web.Controllers
     [Route("api/[controller]")]
     public class ScheduleController : ControllerBase
     {
+
+
         private readonly SchedulerDbContext _db;
 
         // Fält (private property) – lagrar en referens till SevenDaysService
@@ -311,37 +314,48 @@ namespace Scheduler.Web.Controllers
 
 
         // Endpoint för POST /api/schedule/block/{id}/presenter
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Contributor")]
         [HttpPost("block/{id}/presenter")]
-        public IActionResult AddPresenter(int id, [FromBody] AddPresenterDto presenterDto)
+        public async Task<IActionResult> AddPresenter( int id, [FromServices] UserManager<IdentityUser> userManager)
         {
-            if (string.IsNullOrWhiteSpace(presenterDto.Name))
-                return BadRequest(new { error = "Presenter name cannot be empty" });
+       
+            var userId = userManager.GetUserId(User);
 
-            // 🔹 Hämta blocket inklusive presenters och guests
-            var block = _db.ScheduleBlocks
+            var contributor = await _db.Contributors
+                .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+
+            if (contributor == null)
+                return BadRequest(new { error = "Contributor not found" });
+
+            //Block
+            var block = await _db.ScheduleBlocks
                 .Include(b => b.Presenters)
-                .Include(b => b.Guests)
-                .FirstOrDefault(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id);
 
             if (block == null)
-                return NotFound(new { error = $"Block with id {id} not found" });
+                return NotFound(new { error = $"Block {id} not found" });
 
-            // 🔹 Skapa ny presenter och lägg till i listan
-            var presenter = new Presenter { Name = presenterDto.Name };
+            // Finns presenter
+            if (block.Presenters.Any())
+                return Conflict(new { error = "Block already has presenter" });
+
+            // Hämta DisplayName
+            var presenter = new Presenter
+            {
+                Name = contributor.DisplayName
+            };
+
             block.Presenters.Add(presenter);
+            await _db.SaveChangesAsync();
 
-            // 🔹 Spara till databasen
-            _db.SaveChanges();
-
-            // 🔹 Hämta dagen för att kunna returnera datum
-            var day = _db.ScheduleDays
+            // Dagens datum
+            var day = await _db.ScheduleDays
                 .Include(d => d.Blocks)
-                .FirstOrDefault(d => d.Blocks.Any(b => b.Id == id));
+                .FirstOrDefaultAsync(d => d.Blocks.Any(b => b.Id == id));
 
             var date = day?.Date.ToString("yyyy-MM-dd") ?? string.Empty;
 
-            // 🔹 Mappa till DTO
+            // Mappa tillbaka som ScheduleBlockDto
             var result = new ScheduleBlockDto
             {
                 Id = block.Id,
@@ -356,6 +370,7 @@ namespace Scheduler.Web.Controllers
 
             return Ok(result);
         }
+
 
 
         // Endpoint för POST /api/schedule/block/{id}/guests
@@ -445,7 +460,8 @@ namespace Scheduler.Web.Controllers
                 Address = "",
                 Phone = "",
                 HourlyRate = 750,
-                EventAddon = 300
+                EventAddon = 300,
+                DisplayName = ""
             };
 
             _db.Contributors.Add(contributor);
@@ -486,9 +502,7 @@ namespace Scheduler.Web.Controllers
 
             contributor.HourlyRate = dto.HourlyRate;
             contributor.EventAddon = dto.EventAddon;
-
-            Console.WriteLine(dto.HourlyRate);
-            Console.WriteLine(dto.EventAddon);
+            contributor.DisplayName = dto.DisplayName ?? contributor.DisplayName;
 
             await _db.SaveChangesAsync();
 
@@ -499,7 +513,8 @@ namespace Scheduler.Web.Controllers
                 Address = contributor.Address,
                 Phone = contributor.Phone,
                 HourlyRate = contributor.HourlyRate,
-                EventAddon = contributor.EventAddon
+                EventAddon = contributor.EventAddon,
+                DisplayName = contributor.DisplayName
             };
 
             return Ok(result);
@@ -524,6 +539,7 @@ namespace Scheduler.Web.Controllers
 
                 decimal? hourlyRate = null;
                 decimal? eventAddon = null;
+                string? displayName = "";
 
                 if (roles.Contains("Contributor"))
                 {
@@ -534,6 +550,7 @@ namespace Scheduler.Web.Controllers
                     {
                         hourlyRate = contributor.HourlyRate;
                         eventAddon = contributor.EventAddon;
+                        displayName = contributor?.DisplayName;
                     }
                 }
 
@@ -543,7 +560,8 @@ namespace Scheduler.Web.Controllers
                     email = user.Email,
                     roles = roles,
                     hourlyRate,
-                    eventAddon
+                    eventAddon,
+                    displayName
                 });
             }
 
@@ -590,6 +608,72 @@ namespace Scheduler.Web.Controllers
             return Ok(payments);
 
         }
+
+        // GET /api/schedule/payments
+        [Authorize(Roles = "Contributor")]
+        [HttpPost("payments")]
+        public async Task<IActionResult> CreatePayment(
+        [FromBody] CreatePaymentDto dto, [FromServices] UserManager<IdentityUser> userManager)
+        {
+            var userId = userManager.GetUserId(User);
+            if (userId == null)
+                return Unauthorized(new { error = "Not logged in" });
+
+            var contributor = await _db.Contributors
+                .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+
+            if (contributor == null)
+                return BadRequest(new { error = "No contributor profile found" });
+
+            var block = await _db.ScheduleBlocks
+                .Include(b => b.Presenters)
+                .FirstOrDefaultAsync(b => b.Id == dto.BlockId);
+
+            if (block == null)
+                return NotFound(new { error = "Block not found" });
+
+            if (!block.Presenters.Any())
+                return BadRequest(new { error = "Block must have presenter first" });
+
+            if (!block.Presenters.Select(x => x.Name).Contains(contributor.DisplayName))
+                return BadRequest(new { error = "User is not presenter on this block" });
+
+            if (string.IsNullOrWhiteSpace(dto.Month))
+                return BadRequest(new { error = "Month is required" });
+
+            if (!DateTime.TryParseExact(dto.Month + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var month))
+            {
+                return BadRequest(new { error = "Invalid month format. Expected yyyy-MM" });
+            }
+
+
+            var duration = block.Range.End - block.Range.Start;
+            var hours = (decimal)duration.TotalHours;
+
+            var total = (hours * contributor.HourlyRate) + contributor.EventAddon;
+
+            var payment = new PaymentRecord
+            {
+                ContributorId = contributor.Id,
+                Month = month,
+                Hours = hours,
+                Events = 1,
+                TotalAmount = total,
+                VatAmount = Math.Round(total * 0.25m, 2)
+            };
+
+            _db.PaymentRecords.Add(payment);
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Payment created",
+                paymentId = payment.Id,
+                contributorId = contributor.Id
+            });
+        }
+
+
 
         // Endpoint för GET /api/schedule/contributors/me
         [Authorize]

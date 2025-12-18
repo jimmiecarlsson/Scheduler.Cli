@@ -65,3 +65,26 @@ export async function getUserPayments(userId) {
         .then(r => r.data);
 }
 
+export async function getMyPayments() {
+    return http
+        .get("/api/schedule/contributors/me/payments")
+        .then(r => r.data);
+}
+
+export async function addPresenter(blockId, name) {
+    const res = await http.post(`/api/schedule/block/${blockId}/presenter`, {
+        name
+    });
+    return res.data;
+}
+
+export async function createPayment(blockId, month) {
+    const res = await http.post("/api/schedule/payments", {
+        blockId,
+        month
+    });
+    return res.data;
+}
+
+
+
