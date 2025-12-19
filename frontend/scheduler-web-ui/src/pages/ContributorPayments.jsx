@@ -23,7 +23,7 @@ const ContributorPayments = () => {
         <Container>  
             <Row>
                 <Col>
-                    <h3>Mina ersättningar</h3>
+                    <h1>Mina ersättningar</h1>
 
                     {error && <Alert variant="danger">{error}</Alert>}
 
