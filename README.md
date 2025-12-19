@@ -57,6 +57,59 @@ Systemet började som en enkel konsolapplikation och utvecklades vidare genom:
 
 Varje steg har byggt vidare på tidigare erfarenheter och gjort systemet starkare och mer realistiskt.
 
+## Snabbstart
+
+Ladda ner repot och följ dessa steg för att köra alla delar av plattformen lokalt:
+
+### 1. Backend API
+```bash
+cd Scheduler.Web
+dotnet run"
+```
+
+API nås nu på:  
+https://localhost:7268/
+
+Scalar i development mode:
+https://localhost:7268/scalar/v1
+
+---
+
+### 2. Publik webbklient (React + Vite)
+```bash
+cd frontend/scheduler-public-ui
+npm install
+npm run dev
+```
+Publik webbklient når du på:
+http://localhost:5174/
+
+---
+
+### 3. Admin webbklient (React + Vite)
+```bash
+cd scheduler-web-ui
+npm install
+npm run dev
+```
+Administrations-klienten når du på
+http://localhost:5173/
+
+Exempel admin
+admin@example.com
+Admin123!
+
+Exempel frilansare
+user@contrib.com
+Contrib123! (samma lösen på alla)
+
+
+---
+
+> Notera: Installera nödvändiga NuGet-paket och npm-dependencies om det saknas.
+
+
+
 ## Licens
 
 Projektet är ett pågående utbildnings- och utvecklingsarbete.
