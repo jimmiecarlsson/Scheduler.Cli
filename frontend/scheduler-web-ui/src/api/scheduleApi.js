@@ -59,9 +59,9 @@ export async function updateContributorRates(userId, dto) {
         .then(r => r.data);
 }
 
-export async function getUserPayments(userId) {
+export async function getUserPayments(id) {
     return http
-        .get(`/api/schedule/users/${userId}/payments`)
+        .get(`/api/schedule/users/${id}/payments`)
         .then(r => r.data);
 }
 

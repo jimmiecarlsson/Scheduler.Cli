@@ -540,6 +540,7 @@ namespace Scheduler.Web.Controllers
                 decimal? hourlyRate = null;
                 decimal? eventAddon = null;
                 string? displayName = "";
+                int? contributorId = null;
 
                 if (roles.Contains("Contributor"))
                 {
@@ -551,6 +552,7 @@ namespace Scheduler.Web.Controllers
                         hourlyRate = contributor.HourlyRate;
                         eventAddon = contributor.EventAddon;
                         displayName = contributor?.DisplayName;
+                        contributorId = contributor.Id;
                     }
                 }
 
@@ -561,7 +563,8 @@ namespace Scheduler.Web.Controllers
                     roles = roles,
                     hourlyRate,
                     eventAddon,
-                    displayName
+                    displayName,
+                    contributorId
                 });
             }
 
@@ -570,29 +573,19 @@ namespace Scheduler.Web.Controllers
 
         // GET /api/schedule/users/{id}/payments
         [Authorize(Roles = "Admin")]
-        [HttpGet("users/{userId}/payments")]
-        public async Task<IActionResult> GetPayments(
-            string userId, [FromServices] UserManager<IdentityUser> userManager)
+        [HttpGet("users/{contributorId:int}/payments")]
+        public async Task<IActionResult> GetPaymentsByContributor(
+            int contributorId)
         {
             // Hämta användaren
-            var user = await userManager.FindByIdAsync(userId);
-            if (user == null)
-                return NotFound(new { error = "User not found" });
-
-
-            // Stoppa om användaren är Admin
-            var roles = await userManager.GetRolesAsync(user);
-            if (roles.Contains("Admin"))
-                return BadRequest(new { error = "Cannot modify Admin roles" });
-
             var contributor = await _db.Contributors
-                .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
+                .FirstOrDefaultAsync(c => c.Id == contributorId);
 
             if (contributor == null)
                 return NotFound(new { error = "Contributor profile not found" });
 
             var payments = await _db.PaymentRecords
-                .Where(p => p.ContributorId == contributor.Id)
+                .Where(p => p.ContributorId == contributorId)
                 .OrderByDescending(p => p.Month)
                 .Select(p => new PaymentDto
                 {

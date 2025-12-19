@@ -94,7 +94,8 @@ const AdminUsers = () => {
                                                 </Button>
                                                 <Button
                                                     variant="outline-primary"
-                                                    onClick={() => navigate(`/admin/users/${u.id}/payments`)}
+                                                    disabled={!u.contributorId}
+                                                    onClick={() => navigate(`/admin/users/${u.contributorId}/payments`)}
                                                 >
                                                     Ersättningar
                                                 </Button>
