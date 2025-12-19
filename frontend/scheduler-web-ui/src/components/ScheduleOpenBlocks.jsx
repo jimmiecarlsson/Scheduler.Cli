@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 
-import { Row, Col, ListGroup, Alert, Button } from 'react-bootstrap';
+import { Row, Card, Col, ListGroup, Alert, Button } from 'react-bootstrap';
 import { FaMagnifyingGlass } from "react-icons/fa6";
 
 import { useEffect } from 'react';
@@ -171,7 +171,7 @@ function ScheduleOpenBlocks({ user }) {
                         )
                         }
                     </ListGroup>
-                    <div className="d-flex justify-content-between mt-3">
+                    <div className="d-flex col-md-4 justify-content-between mt-3 mx-auto">
                         <Button
                             variant="secondary"
                             disabled={currentIndex === 0}
@@ -179,9 +179,10 @@ function ScheduleOpenBlocks({ user }) {
                         >
                             Föregående dag
                         </Button>
-
-                        <div>
-                            {currentDay?.date}
+                        <div className="displayday">
+                            <h5>
+                                {currentDay?.date}
+                            </h5>
                         </div>
 
                         <Button

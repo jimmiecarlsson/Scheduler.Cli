@@ -8,7 +8,7 @@ const LetsRock = () => {
                 title="Let's Rock!"
                 subtitle="Live right now! — we’re here to rock around the clock."
                 ctaText="Next Coming up!"
-                ctaHref="/letsrock#rest"
+                ctaHref="/upcoming"
             />
         </>
     );

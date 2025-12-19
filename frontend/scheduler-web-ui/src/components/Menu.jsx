@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Navbar, Nav, Container } from "react-bootstrap";
 import { FaRadio } from "react-icons/fa6";
 import { FaUserCircle } from "react-icons/fa";
+import { GiGuitarBassHead } from "react-icons/gi";
 
 import { logout } from "../api/scheduleApi";
 
@@ -16,7 +17,9 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
         <>
             <Navbar bg="light" expand="lg">
                 <Container>
-                    <Navbar.Brand><FaRadio /> Radio</Navbar.Brand>
+                    <Navbar.Brand>
+                        <h3 className="mb-0 text-black"><GiGuitarBassHead className="text-black fs-1" /> Radio Gaga</h3>
+                    </Navbar.Brand>
 
                     {isLoggedIn && (
                         <Nav className="me-auto">

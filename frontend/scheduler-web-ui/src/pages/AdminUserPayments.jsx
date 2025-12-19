@@ -27,7 +27,7 @@ const AdminUserPayments = () => {
                 <Row className="mb-5">
                     <Col>
                         
-                        <h2>Ersättningar</h2>
+                        <h1>Ersättningar</h1>
                         <Table striped bordered>
                             <thead>
                                 <tr>

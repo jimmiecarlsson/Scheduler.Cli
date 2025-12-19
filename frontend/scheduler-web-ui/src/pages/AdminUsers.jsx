@@ -48,7 +48,7 @@ const AdminUsers = () => {
 
            
             <div>
-                <h2>Administrera frilans</h2>
+                <h1>Administrera frilans</h1>
 
                 {message && (
                     <Alert variant="info" className="mt-3">

@@ -14,12 +14,12 @@ const MyPage = ( { user } ) => {
             <div className="container mt-4">
                 <Row>
                     <Col>
-                        <h2>Mina sidor</h2>
+                        <h1>Mina sidor</h1>
                     </Col>
                 </Row>
-                <Row>
+                <Row className="mt-3">
                     <Col>
-                        <Card className="mt-3">
+                        <Card>
                             <Card.Body>
                                 <Card.Title>Min profil</Card.Title>
                                 <Card.Text>
@@ -47,9 +47,13 @@ const MyPage = ( { user } ) => {
                     </Col>
                 </Row>
                 <Row>
-                    <Col className="mt-3  col-md-12">
-                        <hr />
-                        <h4>Tillgängliga block</h4>
+                    <Col className="mt-4 col-md-12">
+                        <h2>Tillgängliga block</h2>
+                    </Col>
+
+                </Row>
+                <Row>
+                    <Col className="mt-3 col-md-12">
                         <ScheduleOpenBlocks user={user} />
                     </Col>
 

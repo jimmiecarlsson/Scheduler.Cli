@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { login } from "../api/scheduleApi";
+import { Card, Button, Row, Col } from "react-bootstrap";
 
 export default function Login({ onLogin }) {
 
@@ -30,35 +31,40 @@ export default function Login({ onLogin }) {
 
     return (
         <div className="container mt-5">
-            <h2>Logga in</h2>
 
             {error && <div className="alert alert-danger">{error}</div>}
+            <Row>
+                <Col className="col-md-4 mx-auto">
+                    <Card className="p-4">
+                        <h3>Logga in</h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-3">
+                                <label>Email</label>
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                />
+                            </div>
 
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label>Email</label>
-                    <input
-                        type="email"
-                        className="form-control"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                    />
-                </div>
+                            <div className="mb-3">
+                                <label>Lösenord</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                />
+                            </div>
 
-                <div className="mb-3">
-                    <label>Lösenord</label>
-                    <input
-                        type="password"
-                        className="form-control"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                    />
-                </div>
-
-                <button className="btn btn-primary" type="submit">
-                    Logga in
-                </button>
-            </form>
+                            <Button className="btn btn-primary" type="submit">
+                                Logga in
+                            </Button>
+                        </form>
+                    </Card>
+                </Col>
+            </Row>
         </div>
     );
 }
