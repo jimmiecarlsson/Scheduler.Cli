@@ -9,44 +9,43 @@ Scheduler-plattformen startade som en konsolapplikation (Scheduler.Cli) för att
 ### Arkitekturöversikt
 
 - **Scheduler.Cli:** Ursprunglig konsolapplikation där schemalogiken och domänmodellerna formades.
+
 - **Scheduler.WebAPI:** ASP.NET Core WebAPI som levererar schemadata och affärslogik.
-- **Scheduler Admin UI:** React-baserad frontend för hantering av användare, block, presentatörer och betalningar.
-- **Scheduler Public UI:** React-baserad frontend som ger besökare möjlighet att se pågående och kommande program.
+- **/frontend/scheduler-web-ui:** React-baserad frontend för hantering av roller, sändningsblock, presentatörer/frilans och deras arvoden.
+- **frontend/scheduler-public-ui:** React-baserad frontend som ger besökare möjlighet att se pågående och kommande program. Typ en publik webb.
 
 ## Funktioner
 
 ### WebAPI
 - CRUD-operationer för block och presentatörer
-- Betalningshantering för contributors
+- Betalningsregistrering för frilansare
 - Autentisering och rollbaserad autorisering
-- Swagger/OpenAPI-dokumentation
+- Scalar/OpenAPI-dokumentation i devolpment mode.
 - EF Core med databas-migreringar
+- Validering i backend
 
 ### Domänlogik
 - Entiteter: ScheduleBlock, Presenter, PaymentRecord, Contributor
 - Tidslogik och relationer mellan modellerna
 - Identity-koppling mot användare i databasen
 
-### Admin-Frontend
+### scheduler-web-ui
 - Säkerhetsstyrda admin-sidor
-- Hantering av användare och contributors
+- Hantering av roller och make-contributor
 - Skapande/ändring av schemablock
-- Tilldelning av presentatörer
-- Visning och registrering av betalningar
+- Tilldelning av presentatörer om du är inloggad som en frilans.
+- Visning och registrering av när en frilansanvändare väljer att bli presentatör för ett tom sändningsblock.
 
 ### Publik-Frontend
-- Offentlig vy av schema
 - API-baserad visning av aktuella och kommande block
 
 ## Teknisk Miljö
-
 - **Backend:** .NET, ASP.NET Core WebAPI, EF Core, Identity
-- **Frontend Admin:** React, React Router, JWT-autentisering
-- **Frontend Public:** React, schemavisning från API
-- **Databas:** EF Core-migreringar och relationsmodeller
+- **/frontend/scheduler-web-ui:** React, React Router, cookie-baserad authensiering.
+- **/frontend/scheduler-web-ui:** React, sändningsinformation från API och statiska states.
+- **Databas:** SQLite, EF Core-migreringar och relationsmodeller
 
 ## Utvecklingsresa
-
 Systemet började som en enkel konsolapplikation och utvecklades vidare genom:
 
 1. Initial logik i CLI för schemaläggning
@@ -54,19 +53,9 @@ Systemet började som en enkel konsolapplikation och utvecklades vidare genom:
 3. Flytt till EF Core med databaslagring
 4. Skapande av WebAPI som kärna
 5. Admin-UI med rollhantering
-6. Publik UI som visar schemainformation från API
+6. Publik UI som visar sändningsinformation från API
 
 Varje steg har byggt vidare på tidigare erfarenheter och gjort systemet starkare och mer realistiskt.
-
-## Framtida möjligheter
-
-Exempel på framtida förbättringar:
-
-- Statistik och rapportering
-- Notifieringar till presentatörer
-- Vidareutvecklad design i UI
-- Molndeploy och CI/CD pipelines
-- Automatiserade tester
 
 ## Licens
 
