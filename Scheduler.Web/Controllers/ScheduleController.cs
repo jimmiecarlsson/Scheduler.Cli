@@ -374,7 +374,7 @@ namespace Scheduler.Web.Controllers
 
 
         // Endpoint för POST /api/schedule/block/{id}/guests
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Contributor")]
         [HttpPost("block/{id}/guest")]
         public IActionResult AddGuests(int id, [FromBody] AddGuestsDto guestsDto)
         {
@@ -391,7 +391,7 @@ namespace Scheduler.Web.Controllers
             if (block == null)
                 return NotFound(new { error = $"Block with id {id} not found" });
 
-            // 🔹 Lägg till varje gäst
+            // Lägg till varje gäst
             foreach (var name in guestsDto.Guests)
             {
                 if (!string.IsNullOrWhiteSpace(name))
@@ -400,17 +400,17 @@ namespace Scheduler.Web.Controllers
                 }
             }
 
-            // 🔹 Spara till databasen
+            // Spara till databasen
             _db.SaveChanges();
 
-            // 🔹 Hämta dagen blocket tillhör (för att kunna sätta Date i svaret)
+            // Hämta dagen blocket tillhör (för att kunna sätta Date i svaret)
             var day = _db.ScheduleDays
                 .Include(d => d.Blocks)
                 .FirstOrDefault(d => d.Blocks.Any(b => b.Id == id));
 
             var date = day?.Date.ToString("yyyy-MM-dd") ?? string.Empty;
 
-            // 🔹 Mappa tillbaka till DTO
+            // Mappa tillbaka till DTO
             var result = new ScheduleBlockDto
             {
                 Id = block.Id,
@@ -480,25 +480,27 @@ namespace Scheduler.Web.Controllers
 
         // Endpoint för PUT /users/{id}/rates-contributor
         [Authorize(Roles = "Admin")]
-        [HttpPut("users/{userId}/rates-contributor")]
-        public async Task<IActionResult> UpdateContributorRates(string userId,
+        [HttpPut("users/{contributorId:int}/rates-contributor")]
+        public async Task<IActionResult> UpdateContributorRates(int contributorId,
             [FromBody] UpdateContributorRatesDto dto,
             [FromServices] UserManager<IdentityUser> userManager)
         {
 
-            var user = await userManager.FindByIdAsync(userId);
+            var contributor = await _db.Contributors
+                .FirstOrDefaultAsync(c => c.Id == contributorId);
+
+            if (contributor == null)
+                return NotFound(new { error = "Contributor profile not found" });
+
+
+            var user = await userManager.FindByIdAsync(contributor.IdentityUserId);
             if (user == null)
                 return NotFound(new { error = "IdentityUser not found" });
+
 
             var roles = await userManager.GetRolesAsync(user);
             if (roles.Contains("Admin"))
                 return BadRequest(new { error = "Cannot update rates for Admin users" });
-
-            var contributor = await _db.Contributors
-                .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
-
-            if (contributor == null)
-                return NotFound(new { error = "Contributor profile not found" });
 
             contributor.HourlyRate = dto.HourlyRate;
             contributor.EventAddon = dto.EventAddon;

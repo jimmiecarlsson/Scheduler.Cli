@@ -10,7 +10,7 @@ Scheduler-plattformen startade som en konsolapplikation (Scheduler.Cli) för att
 
 - **Scheduler.Cli:** Ursprunglig konsolapplikation där schemalogiken och domänmodellerna formades.
 
-- **Scheduler.WebAPI:** ASP.NET Core WebAPI som levererar schemadata och affärslogik.
+- **Scheduler.Web:** ASP.NET Core WebAPI som levererar schemadata och affärslogik.
 - **/frontend/scheduler-web-ui:** React-baserad frontend för hantering av roller, sändningsblock, presentatörer/frilans och deras arvoden.
 - **frontend/scheduler-public-ui:** React-baserad frontend som ger besökare möjlighet att se pågående och kommande program. Typ en publik webb.
 
@@ -18,7 +18,7 @@ Scheduler-plattformen startade som en konsolapplikation (Scheduler.Cli) för att
 
 ### WebAPI
 - CRUD-operationer för block och presentatörer
-- Betalningsregistrering för frilansare
+- Arvodesregistrering för frilansare
 - Autentisering och rollbaserad autorisering
 - Scalar/OpenAPI-dokumentation i devolpment mode.
 - EF Core med databas-migreringar
@@ -41,8 +41,8 @@ Scheduler-plattformen startade som en konsolapplikation (Scheduler.Cli) för att
 
 ## Teknisk Miljö
 - **Backend:** .NET, ASP.NET Core WebAPI, EF Core, Identity
-- **/frontend/scheduler-web-ui:** React, React Router, cookie-baserad authensiering.
-- **/frontend/scheduler-web-ui:** React, sändningsinformation från API och statiska states.
+- **/frontend/scheduler-web-ui:** React + Vite, React Router, cookie-baserad authensiering.
+- **/frontend/scheduler-public-ui:** React + Vite, React Router, sändningsinformation från API och statiska states.
 - **Databas:** SQLite, EF Core-migreringar och relationsmodeller
 
 ## Utvecklingsresa
