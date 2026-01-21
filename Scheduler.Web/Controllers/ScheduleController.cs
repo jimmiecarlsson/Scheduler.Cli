@@ -442,17 +442,24 @@ namespace Scheduler.Web.Controllers
             var messages = new List<ChatMessage>
     {
         new SystemChatMessage(
-            "Du är en slumpgenerator som hjälper en radiostation att slumpa fram låtval. " +
-            "Radiokanalen spelar mest rocklåtar från band som Queen, Thin Lizzy, AC/DC, " +
-            "Metallica, Iron Maiden, Black Sabbath, Def Leppard, Kiss, Van Halen, Aerosmith. " +
-            "Varva hits med mindre kända låtar.\n\n" +
+            "Du är en slumpgenerator som hjälper en radiostation att ta fram låtförslag. " +
+            "Radiokanalen spelar mest rock.\n\n" +
             "SVARA ENDAST med giltig JSON i exakt detta format:\n" +
             "{\n" +
             "  \"songs\": [\n" +
-            "    { \"title\": \"...\", \"artist\": \"...\", \"duration\": \"m:ss\" }\n" +
+            "    {\n" +
+            "      \"title\": \"...\",\n" +
+            "      \"artist\": \"...\",\n" +
+            "      \"duration\": \"m:ss\",\n" +
+            "      \"durationSeconds\": 0\n" +
+            "    }\n" +
             "  ]\n" +
-            "}\n" +
-            "Inget annat än JSON."
+            "}\n\n" +
+            "Regler:\n" +
+            "- duration ska vara i formatet m:ss (t.ex. 4:30, 5:05)\n" +
+            "- durationSeconds ska vara korrekt beräknat från duration\n" +
+            "- durationSeconds ska vara ett heltal\n" +
+            "- Inget annat än JSON"
         ),
         new UserChatMessage(dto.Prompt)
     };
