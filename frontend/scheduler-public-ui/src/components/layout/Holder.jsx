@@ -6,7 +6,7 @@ import { CgScrollV } from "react-icons/cg"
 import ScheduleToday from "../ScheduleToday";
 import WaveForm from "./WaveForm";
 
-const Holder = ({ title, subtitle, ctaText, ctaHref }) => {
+const Holder = ({ title, subtitle, ctaText, ctaHref, currentSong }) => {
 
     const [schedule, setSchedule] = useState([]);
 
@@ -45,11 +45,24 @@ const Holder = ({ title, subtitle, ctaText, ctaHref }) => {
                             <p>{currentBlock.startTime} - {currentBlock.endTime}</p>
                         </Card>
                     ) : (
-                        <Card className="mb-4 p-3 bg-danger text-white w-100">
-                            <h3 className="mt-0 mb-4">Broadcasting!</h3>
-                                <FaPlay className="fs-1"/><h1>Rock Music Non Stop</h1>
-                            <p>Between the sessions we will always Rock!</p>
-                        </Card>
+                            <Card className="mb-4 p-3 bg-danger text-white w-100">
+                                <h3 className="mt-0 mb-4">Broadcasting!</h3>
+
+                                {currentSong ? (
+                                    <>
+                                        <h1>
+                                        <FaMusic className="fs-1" /> - <strong>{currentSong.title}</strong>
+                                        </h1>
+                                        <h3>{currentSong.artist}</h3>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaPlay className="fs-1" />
+                                        <h1>Rock Music Non Stop</h1>
+                                        <p>Between the sessions we will always Rock!</p>
+                                    </>
+                                )}
+                            </Card>
                     )}
                     {ctaText && ctaHref && (
                         <p className="lead mt-3 mb-0">
