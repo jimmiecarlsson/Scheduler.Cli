@@ -19,6 +19,7 @@ namespace Scheduler.Web.Data
         public DbSet<Guest> Guests { get; set; }
         public DbSet<Contributor> Contributors { get; set; }
         public DbSet<PaymentRecord> PaymentRecords { get; set; }
+        public DbSet<Playlist> Playlists => Set<Playlist>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -73,6 +74,25 @@ namespace Scheduler.Web.Data
             modelBuilder.Entity<ScheduleBlock>()
                 .Property(b => b.Studio)
                 .HasConversion<int>();
+
+            modelBuilder.Entity<Playlist>(entity =>
+            {
+                entity.ToTable("Playlists");
+
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(p => p.Artist)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(p => p.DurationSeconds)
+                    .IsRequired();
+            });
+
         }
     }
 }

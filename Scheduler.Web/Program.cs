@@ -96,13 +96,19 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Seed roles/users
+// Seed roles/users + playlist
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var services = scope.ServiceProvider;
+
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var db = services.GetRequiredService<SchedulerDbContext>();
+
     await IdentitySeeder.SeedAsync(roleManager, userManager);
+    await PlaylistSeeder.SeedAsync(db);
 }
+
 
 app.UseHttpsRedirection();
 app.UseCors(corsPolicy);
