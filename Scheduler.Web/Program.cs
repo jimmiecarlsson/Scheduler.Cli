@@ -1,11 +1,32 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using Scheduler.Web.Data;
-using Scheduler.Application;
+using OpenAI.Chat;
 using Scalar.AspNetCore;
+using Scheduler.Application;
+using Scheduler.Web.Data;
+using System.ClientModel;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// DotNetEnv
+DotNetEnv.Env.Load();
+
+// Open AI
+
+var token = Environment.GetEnvironmentVariable("OPENAI_TOKEN");
+
+if (string.IsNullOrWhiteSpace(token))
+    throw new Exception("OPENAI_TOKEN is missing");
+
+builder.Services.AddSingleton(_ =>
+    new ChatClient(
+        model: "gpt-4o-mini",
+        credential: new ApiKeyCredential(token)
+    )
+);
+
 
 // Database
 builder.Services.AddDbContext<SchedulerDbContext>(options =>
@@ -66,6 +87,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IEmailSender<IdentityUser>, NoOpEmailSender>();
 
 var app = builder.Build();
+
 
 // Dev tools
 if (app.Environment.IsDevelopment())

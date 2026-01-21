@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /Scheduler.Web/scheduler.db-shm
 /Scheduler.Web/scheduler.db-wal
 /frontend/scheduler-public-ui/test.html
+/Scheduler.Web/.env

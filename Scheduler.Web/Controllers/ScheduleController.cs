@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OpenAI.Chat;
 using Scheduler.Application;
 using Scheduler.Domain.Entities;
 using Scheduler.Domain.ValueObjects;
 using Scheduler.Web.Data;
 using Scheduler.Web.Dtos;
 using System.Globalization;
+using System.Text.Json;
 
 namespace Scheduler.Web.Controllers
 {
@@ -33,12 +35,14 @@ namespace Scheduler.Web.Controllers
 
         private readonly SignInManager<IdentityUser> _signInManager;
 
-        // Konstruktorn
-        public ScheduleController(SchedulerDbContext db, SignInManager<IdentityUser> signInManager)
-        {
+        private readonly ChatClient _chatClient;
 
+        // Konstruktorn
+        public ScheduleController(SchedulerDbContext db, SignInManager<IdentityUser> signInManager, ChatClient chatClient)
+        {
             _db = db;
             _signInManager = signInManager;
+            _chatClient = chatClient;
         }
 
 
@@ -425,6 +429,50 @@ namespace Scheduler.Web.Controllers
 
             return Ok(result);
         }
+
+        [Authorize(Roles = "Contributor")]
+        [HttpPost("chat")]
+        public IActionResult Chat([FromBody] ChatRequestDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Prompt))
+                return BadRequest(new { error = "Prompt is required" });
+
+            var messages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+            "Du är en slumpgenerator som hjälper en radiostation att slumpa fram låtval. " +
+            "Radiokanalen spelar mest rocklåtar från band som Queen, Thin Lizzy, AC/DC, " +
+            "Metallica, Iron Maiden, Black Sabbath, Def Leppard, Kiss, Van Halen, Aerosmith. " +
+            "Varva hits med mindre kända låtar.\n\n" +
+            "SVARA ENDAST med giltig JSON i exakt detta format:\n" +
+            "{\n" +
+            "  \"songs\": [\n" +
+            "    { \"title\": \"...\", \"artist\": \"...\", \"duration\": \"m:ss\" }\n" +
+            "  ]\n" +
+            "}\n" +
+            "Inget annat än JSON."
+        ),
+        new UserChatMessage(dto.Prompt)
+    };
+
+            var response = _chatClient.CompleteChat(messages);
+            var json = response.Value.Content[0].Text.Trim();
+
+            try
+            {
+                using var _ = JsonDocument.Parse(json);
+                return Content(json, "application/json");
+            }
+            catch
+            {
+                return BadRequest(new
+                {
+                    error = "Model did not return valid JSON",
+                    raw = json
+                });
+            }
+        }
+
 
 
 
