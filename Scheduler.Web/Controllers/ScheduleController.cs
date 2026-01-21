@@ -430,9 +430,11 @@ namespace Scheduler.Web.Controllers
             return Ok(result);
         }
 
+
+        // Endpoint för POST /api/schedule/chat
         [Authorize(Roles = "Contributor")]
         [HttpPost("chat")]
-        public IActionResult Chat([FromBody] ChatRequestDto dto)
+        public async Task<IActionResult> Chat([FromBody] ChatRequestDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Prompt))
                 return BadRequest(new { error = "Prompt is required" });
@@ -455,7 +457,7 @@ namespace Scheduler.Web.Controllers
         new UserChatMessage(dto.Prompt)
     };
 
-            var response = _chatClient.CompleteChat(messages);
+            var response = await _chatClient.CompleteChatAsync(messages);
             var json = response.Value.Content[0].Text.Trim();
 
             try
