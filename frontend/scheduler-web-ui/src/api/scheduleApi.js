@@ -86,5 +86,21 @@ export async function createPayment(blockId, month) {
     return res.data;
 }
 
+export async function getCurrentSong() {
+    const res = await http.get("/api/playlist/current");
+    return res.status === 204 ? null : res.data;
+}
+
+export async function getAllPlaylist() {
+    return http.get("/api/playlist/all").then(r => r.data);
+}
+
+export async function generateSongs(prompt) {
+    const res = await http.post("/api/schedule/chat", {
+        prompt
+    });
+    return res.data;
+}
+
 
 

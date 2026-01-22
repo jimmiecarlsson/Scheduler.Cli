@@ -57,6 +57,45 @@ namespace Scheduler.Web.Controllers
             });
         }
 
+        [HttpGet("next")]
+        public IActionResult GetNext()
+        {
+            var playlists = _db.Playlists
+                .OrderBy(p => p.Id)
+                .ToList();
+
+            if (!playlists.Any())
+                return NoContent();
+
+            // Om inget spelas ännu, visa första
+            if (_currentIndex < 0)
+            {
+                var first = playlists[0];
+                return Ok(new
+                {
+                    first.Id,
+                    first.Title,
+                    first.Artist,
+                    first.DurationSeconds
+                });
+            }
+
+            var nextIndex = _currentIndex + 1;
+            if (nextIndex >= playlists.Count)
+                nextIndex = 0;
+
+            var next = playlists[nextIndex];
+
+            return Ok(new
+            {
+                next.Id,
+                next.Title,
+                next.Artist,
+                next.DurationSeconds
+            });
+        }
+
+
         // POST /api/playlist
         [Authorize(Roles = "Contributor")]
         [HttpPost]
@@ -92,6 +131,27 @@ namespace Scheduler.Web.Controllers
                 }
             );
         }
+
+        [Authorize(Roles = "Contributor")]
+        [HttpGet("all")]
+        public IActionResult GetAll()
+        {
+            var songs = _db.Playlists
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Title,
+                    p.Artist,
+                    p.DurationSeconds
+                })
+                .ToList();
+
+            return Ok(songs);
+        }
+
+
+
+
 
     }
 }

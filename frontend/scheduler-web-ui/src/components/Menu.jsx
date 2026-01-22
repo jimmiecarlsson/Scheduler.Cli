@@ -34,9 +34,14 @@ const Menu = ({ isLoggedIn, user, onLogout }) => {
                                 </>
                             )}
                             {user?.role === "Contributor" && (
-                                <Nav.Link as={NavLink} to="/mina-sidor">
-                                    Mina sidor
-                                </Nav.Link>
+                                <>
+                                    <Nav.Link as={NavLink} to="/playlist">
+                                        Playlist
+                                    </Nav.Link>
+                                    <Nav.Link as={NavLink} to="/mina-sidor">
+                                        Mina sidor
+                                    </Nav.Link>
+                                </>
                             )}
                         </Nav>
                     )}

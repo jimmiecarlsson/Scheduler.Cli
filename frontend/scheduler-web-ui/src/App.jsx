@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ContributorProfile from "./pages/ContributorProfile";
 import ContributorPayments from "./pages/ContributorPayments";
 import MyPage from "./pages/MyPage";
+import Playlist from "./pages/Playlist";
 
 import AdminUsers from "./pages/AdminUsers";
 import AdminUserPayments from "./pages/AdminUserPayments";
@@ -196,6 +197,18 @@ function App() {
                                 allowedRoles={["Contributor"]}
                             >
                                 <MyPage user={user} />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/playlist"
+                        element={
+                            <ProtectedRoute
+                                isLoggedIn={isLoggedIn}
+                                userRole={user?.role}
+                                allowedRoles={["Contributor"]}
+                            >
+                                <Playlist user={user} />
                             </ProtectedRoute>
                         }
                     />

@@ -16,8 +16,13 @@ const ScheduleToday = ({ onLoaded, showList=true}) => {
         const fetchData = () => {
             getToday()
                 .then(data => {
-                    setSchedule(data);
-                    if (onLoaded) onLoaded(data);
+                    const sorted = [...data]
+                        .sort(
+                            (a, b) => a.startTime.localeCompare(b.startTime)
+                        );
+
+                    setSchedule(sorted);
+                    if (onLoaded) onLoaded(sorted)
                 })
                 .catch(err => setError(err.message));
         };
