@@ -102,5 +102,9 @@ export async function generateSongs(prompt) {
     return res.data;
 }
 
+export async function addPlaylistSong(dto) {
+    const res = await http.post("/api/playlist", dto);
+    return res.data;
+}
 
 
